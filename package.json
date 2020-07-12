@@ -1,7 +1,7 @@
 {
-  "name": "prismarine-template",
-  "version": "1.0.0",
-  "description": "A template repository to make it easy to create new prismarine repo",
+  "name": "prismarine-gameplay",
+  "version": "0.1.0",
+  "description": "A high level API plugin for controlling Mineflayer bots.",
   "main": "index.js",
   "scripts": {
     "test": "jest --verbose",
@@ -12,18 +12,22 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PrismarineJS/prismarine-template.git"
+    "url": "git+https://github.com/PrismarineJS/prismarine-gameplay.git"
   },
   "keywords": [
     "prismarine",
-    "template"
+    "gameplay",
+    "mineflayer",
+    "minecraft",
+    "ai"
   ],
   "author": "Romain Beaumont",
+  "contributors": ["TheDudeFromCI"],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/PrismarineJS/prismarine-template/issues"
+    "url": "https://github.com/PrismarineJS/prismarine-gameplay/issues"
   },
-  "homepage": "https://github.com/PrismarineJS/prismarine-template#readme",
+  "homepage": "https://github.com/PrismarineJS/prismarine-gameplay#readme",
   "devDependencies": {
     "jest": "^26.1.0",
     "require-self": "^0.2.3",
