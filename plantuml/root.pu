@@ -1,0 +1,18 @@
+@startuml StateMachine
+
+state "Waiting for Command" as WaitingForCommand
+state "Collect Resources" as CollectResources
+state "Guard Area" as GuardArea
+state "Build Structure" as BuildStructure
+state "Stay Alive" as StayAlive
+
+WaitingForCommand --> CollectResources
+WaitingForCommand --> GuardArea
+WaitingForCommand --> BuildStructure
+WaitingForCommand --> StayAlive
+CollectResources --> WaitingForCommand
+GuardArea --> WaitingForCommand
+BuildStructure --> WaitingForCommand
+StayAlive --> WaitingForCommand
+
+@enduml
