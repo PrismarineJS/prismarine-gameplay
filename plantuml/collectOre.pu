@@ -1,0 +1,25 @@
+@startuml "Collect Ore"
+
+state "Collect Ore" as CollectOre : Idle State
+state "Create Mineshaft" as CreateMineshaft
+state "Decend Mineshaft" as DecendMineshaft : Move To Area
+state "Branch Mining" as BranchMining
+state "Mine Ore" as MineOre : Collect Block State
+
+[*] --> CollectOre
+
+CollectOre --> CreateMineshaft : If mineshaft does\nnot exist
+CreateMineshaft --> DecendMineshaft : If not in\nmineshaft
+CollectOre --> DecendMineshaft : If mine does exist\nand not in mineshaft
+
+CollectOre --> BranchMining : If in mineshaft
+DecendMineshaft --> BranchMining
+
+BranchMining --> MineOre : If spot ore
+
+MineOre --> CollectOre : If not enough\nresources
+MineOre --> [*] : If enough resources
+
+CollectOre --> MineOre  : If ore nearby
+
+@enduml

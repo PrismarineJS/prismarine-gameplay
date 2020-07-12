@@ -1,0 +1,35 @@
+@startuml "Collect Resources"
+
+state "Collect Wood" as CollectWood : Idle State
+state "Find Tree" as FindTree
+state "No Trees in Area" as NoTreesInArea
+state "Plant Tree" as PlantTree
+state "Wait For Tree To Grow" as WaitForTreeToGrow
+state "Bonemeal Tree" as BonemealTree
+state "Find Forest Biome" as FindForestBiome
+state "Confirm Natural Tree" as ConfirmNaturalTree
+state "Chop Down Tree" as ChopDownTree : Collect Block State
+
+[*] --> CollectWood : If collecting wood
+CollectWood --> FindTree
+
+FindTree --> ConfirmNaturalTree : If found tree
+FindTree --> NoTreesInArea : If no tree found
+NoTreesInArea --> PlantTree : If has saplings
+NoTreesInArea --> FindForestBiome : If no saplings
+
+FindForestBiome --> ConfirmNaturalTree : Forest found
+
+PlantTree --> WaitForTreeToGrow : If no bonemeal
+PlantTree --> BonemealTree : If bonemeal
+BonemealTree --> WaitForTreeToGrow : Out of bonemeal
+WaitForTreeToGrow --> ChopDownTree
+BonemealTree --> ChopDownTree : Bonemeal worked
+
+ConfirmNaturalTree --> FindTree : If not natural\ntree
+ConfirmNaturalTree --> ChopDownTree
+
+ChopDownTree --> CollectWood : If not enough\nresources
+ChopDownTree --> [*] : If enough resources
+
+@enduml

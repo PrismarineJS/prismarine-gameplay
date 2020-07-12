@@ -1,0 +1,29 @@
+@startuml "Collect Block"
+
+state "Try Collect Block" as TryCollectBlock
+state "Move to Block" as MoveToBlock
+state "Mine Block" as MineBlock
+state "Collect Items" as CollectItems
+state "Store Items" as StoreItems
+state "Move To Chest" as MoveToChest
+state "Craft Chest" as CraftChest
+state "Place Chest" as PlaceChest
+state "Empty Items" as EmptyItems
+
+[*] --> TryCollectBlock
+
+TryCollectBlock --> MoveToBlock : If room in\ninventory
+MoveToBlock --> MineBlock
+MineBlock --> CollectItems
+CollectItems --> [*]
+
+TryCollectBlock --> StoreItems : If no room\nin inventory
+StoreItems --> CraftChest : If no chest\nnearby
+CraftChest --> PlaceChest
+PlaceChest --> MoveToChest
+
+StoreItems --> MoveToChest
+MoveToChest --> EmptyItems
+EmptyItems --> TryCollectBlock
+
+@enduml

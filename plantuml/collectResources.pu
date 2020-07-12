@@ -1,68 +1,27 @@
-@startuml StateMachine
+@startuml "Collect Resources"
 
-state "Collect Resources" as CollectResources
-state "Collect Ore" as CollectOre
-state "Create Mineshaft" as CreateMineshaft
-state "Decend Mineshaft" as DecendMineshaft
-state "Branch Mining" as BranchMining
-state "Stop Collecting" as StopCollecting
-state "Mine Ore" as MineOre
-state "Collect Items" as CollectItemsA
-state "Protect Self" as ProtectSelfA
+state "Collect Resources" as CollectResources : Idle State
+state "Collect Wood" as CollectWood : Collect Wood State
+state "Collect Ore" as CollectOre : Collect Ore State
+state "Protect Self" as ProtectSelf
+state "Eat" as Eat
 
-CollectResources --> CollectOre : If collecting\nore/stone
-CollectOre --> CreateMineshaft : If mineshaft does not exist
-CreateMineshaft --> DecendMineshaft : If not in mineshaft
-CollectOre --> DecendMineshaft : If mine does exist\nand not in mineshaft
+[*] --> CollectResources
+CollectResources --> [*] : If done
 
-CollectOre --> BranchMining : If in mineshaft
-DecendMineshaft --> BranchMining
+state "Finish Collecting" as FinishCollecting : Idle State
+CollectResources --> CollectOre : If need\nore
+CollectOre --> FinishCollecting : If finished
+CollectOre --> ProtectSelf : If in\ndanger
 
-BranchMining --> MineOre : If spot ore
-MineOre --> CollectItemsA
+CollectResources --> CollectWood : If need\nwood
+CollectWood --> CollectResources
+CollectWood --> FinishCollecting
+CollectWood --> ProtectSelf : If in\ndanger
 
-BranchMining --> ProtectSelfA : If in danger
-ProtectSelfA --> CollectOre
-
-CollectItemsA --> CollectOre : If not enough\nresources
-CollectItemsA --> StopCollecting : If enough resources
-
-state "Collect Wood" as CollectWood
-state "Find Tree" as FindTree
-state "No Trees in Area" as NoTreesInArea
-state "Plant Tree" as PlantTree
-state "Wait For Tree To Grow" as WaitForTreeToGrow
-state "Bonemeal Tree" as BonemealTree
-state "Find Forest Biome" as FindForestBiome
-state "Confirm Natural Tree" as ConfirmNaturalTree
-state "Chop Down Tree" as ChopDownTree
-state "Collect Items" as CollectItemsB
-state "Protect Self" as ProtectSelfB
-
-CollectResources --> CollectWood : If collecting wood
-CollectWood --> FindTree
-
-FindTree --> ConfirmNaturalTree : If found tree
-FindTree --> NoTreesInArea : If no tree found
-NoTreesInArea --> PlantTree : If has saplings
-NoTreesInArea --> FindForestBiome : If no saplings
-
-FindForestBiome --> ConfirmNaturalTree : Forest found
-
-PlantTree --> WaitForTreeToGrow : If no bonemeal
-PlantTree --> BonemealTree : If bonemeal
-BonemealTree --> WaitForTreeToGrow : Out of bonemeal
-WaitForTreeToGrow --> ChopDownTree
-BonemealTree --> ChopDownTree : Bonemeal worked
-
-ConfirmNaturalTree --> FindTree : If not natural\ntree
-ConfirmNaturalTree --> ChopDownTree
-ChopDownTree --> CollectItemsB
-
-FindTree --> ProtectSelfB : If in danger
-ProtectSelfB --> CollectWood
-
-CollectItemsB --> CollectWood : If not enough\nresources
-CollectItemsB --> StopCollecting : If enough resources
+ProtectSelf --> FinishCollecting
+FinishCollecting --> CollectResources : If not\nhungry
+FinishCollecting --> Eat : If hungry
+Eat --> CollectResources
 
 @enduml
