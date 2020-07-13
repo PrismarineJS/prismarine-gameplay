@@ -1,4 +1,4 @@
-@startuml "Collect Resources"
+@startuml "Collect Wood"
 
 state "Collect Wood" as CollectWood : Idle State
 state "Find Tree" as FindTree

@@ -1,4 +1,4 @@
-@startuml StateMachine
+@startuml "Root"
 
 state "Waiting for Command" as WaitingForCommand
 state "Collect Resources" as CollectResources

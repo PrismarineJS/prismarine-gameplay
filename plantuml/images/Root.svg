@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="179px" preserveAspectRatio="none" style="width:573px;height:179px;" version="1.1" viewBox="0 0 573 179" width="573px" zoomAndPan="magnify"><defs><filter height="300%" id="flqh9ihc1h5ub" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><g id="WaitingForCommand"><rect fill="#FEFECE" filter="url(#flqh9ihc1h5ub)" height="50" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="167" x="224.5" y="8"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="224.5" x2="391.5" y1="34.2969" y2="34.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="147" x="234.5" y="25.9951">Waiting for Command</text></g><g id="CollectResources"><rect fill="#FEFECE" filter="url(#flqh9ihc1h5ub)" height="50" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="146" x="6" y="118"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="6" x2="152" y1="144.2969" y2="144.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="126" x="16" y="135.9951">Collect Resources</text></g><g id="GuardArea"><rect fill="#FEFECE" filter="url(#flqh9ihc1h5ub)" height="50" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="97" x="187.5" y="118"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="187.5" x2="284.5" y1="144.2969" y2="144.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="77" x="197.5" y="135.9951">Guard Area</text></g><g id="BuildStructure"><rect fill="#FEFECE" filter="url(#flqh9ihc1h5ub)" height="50" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="122" x="320" y="118"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="320" x2="442" y1="144.2969" y2="144.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="102" x="330" y="135.9951">Build Structure</text></g><g id="StayAlive"><rect fill="#FEFECE" filter="url(#flqh9ihc1h5ub)" height="50" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="84" x="477" y="118"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="477" x2="561" y1="144.2969" y2="144.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="64" x="487" y="135.9951">Stay Alive</text></g><!--MD5=[ca435eb51c9cc28f90c870b0629a9175]
+link WaitingForCommand to CollectResources--><path d="M246.07,58.1 C207.4,75.18 158.74,98.08 123.76,115.64 " fill="none" id="WaitingForCommand-&gt;CollectResources" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="119.14,117.97,128.9763,117.4725,123.6006,115.7111,125.362,110.3354,119.14,117.97" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[7100e502a568d543f1b53864d48ce530]
+link CollectResources to WaitingForCommand--><path d="M141.4,117.97 C180.18,100.91 228.85,78.01 263.74,60.44 " fill="none" id="CollectResources-&gt;WaitingForCommand" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="268.35,58.1,258.5137,58.5975,263.8894,60.3589,262.128,65.7346,268.35,58.1" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[de0b932bfa82002816704c2923254d02]
+link WaitingForCommand to GuardArea--><path d="M281,58.24 C267.83,74.5 253.31,95.99 243.81,113.13 " fill="none" id="WaitingForCommand-&gt;GuardArea" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="241.27,117.84,249.053,111.8046,243.6362,113.4354,242.0055,108.0186,241.27,117.84" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[81ad0d5de04118edd4c23b7310af5477]
+link GuardArea to WaitingForCommand--><path d="M263.57,117.84 C276.87,101.6 291.42,80.11 300.81,62.95 " fill="none" id="GuardArea-&gt;WaitingForCommand" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="303.32,58.24,295.5675,64.3145,300.976,62.6565,302.6339,68.0649,303.32,58.24" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[6fa3508c5f1e4fddafa2ce0cb84b9def]
+link WaitingForCommand to BuildStructure--><path d="M313.54,58.24 C322.28,74.63 336.78,96.36 350.4,113.57 " fill="none" id="WaitingForCommand-&gt;BuildStructure" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="353.84,117.84,351.3073,108.3224,350.7026,113.9468,345.0782,113.3422,353.84,117.84" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[2b6d43f92f8642ae92bfae5c75d50388]
+link BuildStructure to WaitingForCommand--><path d="M376.14,117.84 C367.56,101.46 353.08,79.74 339.34,62.51 " fill="none" id="BuildStructure-&gt;WaitingForCommand" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="335.86,58.24,338.4269,67.7485,339.0113,62.1219,344.6379,62.7063,335.86,58.24" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[0e3ec59fdc0e24082c20199fdbd8f256]
+link WaitingForCommand to StayAlive--><path d="M344.51,58.24 C380,77.84 433.45,105.05 472.05,123.07 " fill="none" id="WaitingForCommand-&gt;StayAlive" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="476.69,125.23,470.2182,117.806,472.1569,123.1203,466.8426,125.0589,476.69,125.23" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[63f37c3ee2139e7349c1f58bdb60c13e]
+link StayAlive to WaitingForCommand--><path d="M483.5,117.97 C452.79,100.91 408.17,78.01 371.45,60.44 " fill="none" id="StayAlive-&gt;WaitingForCommand" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="366.55,58.1,372.9459,65.5895,371.0614,60.2558,376.3951,58.3713,366.55,58.1" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[0a0df2668f700c91eac8a33c8a5054e8]
+@startuml "Root"
+
+state "Waiting for Command" as WaitingForCommand
+state "Collect Resources" as CollectResources
+state "Guard Area" as GuardArea
+state "Build Structure" as BuildStructure
+state "Stay Alive" as StayAlive
+
+WaitingForCommand - -> CollectResources
+WaitingForCommand - -> GuardArea
+WaitingForCommand - -> BuildStructure
+WaitingForCommand - -> StayAlive
+CollectResources - -> WaitingForCommand
+GuardArea - -> WaitingForCommand
+BuildStructure - -> WaitingForCommand
+StayAlive - -> WaitingForCommand
+
+@enduml
+
+PlantUML version 1.2020.10(Sun May 17 02:35:57 MST 2020)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 14.0.1+7
+Operating System: Linux
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>
