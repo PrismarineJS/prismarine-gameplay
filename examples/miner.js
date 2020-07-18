@@ -3,9 +3,7 @@ const pathfinder = require('mineflayer-pathfinder').pathfinder
 const gameplay = require('..').gameplay
 
 if (process.argv.length < 4 || process.argv.length > 6) {
-  console.log(
-    'Usage : node collectItems.js <host> <port> [<name>] [<password>]'
-  )
+  console.log('Usage : node miner.js <host> <port> [<name>] [<password>]')
   process.exit(1)
 }
 
@@ -33,6 +31,7 @@ bot.on('chat', (username, message) => {
         },
         err => {
           if (err) console.log(err)
+          bot.chat('Operation complete.')
         }
       )
       break

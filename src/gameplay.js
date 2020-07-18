@@ -37,7 +37,7 @@ class Gameplay {
 
     this[strategy.name] = (options, cb) => {
       if (this.activeStrategy !== null) {
-        cb(new Error('Strategy is already active!'))
+        cb(new Error(`Strategy ${this.activeStrategy.name} is still active!`))
         return
       }
 
