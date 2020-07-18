@@ -50,8 +50,14 @@ class CollectBlock extends Strategy {
 
         const block = this._findNearbyBlock(id, options.distance)
 
-        if (block) this._handleBlock(block, () => findNext())
-        else cb()
+        if (block) {
+          this._handleBlock(block, err => {
+            if (err) cb(err)
+            else findNext()
+          })
+        } else {
+          cb()
+        }
       }
 
       findNext()
@@ -80,12 +86,13 @@ class CollectBlock extends Strategy {
     const defaultMove = new Movements(this.bot, mcData)
     this.bot.pathfinder.setMovements(defaultMove)
 
-    const goalNear = new GoalNear(
-      block.position.x,
-      block.position.y,
-      block.position.z,
-      3
-    )
+    if (!this._canMine(block)) {
+      cb(new Error('Does not have available tools to mine block!'))
+      return false
+    }
+
+    const pos = block.position
+    const goalNear = new GoalNear(pos.x, pos.y, pos.z, 3) // TODO Replace with GoalInteract
     this.bot.pathfinder.setGoal(goalNear)
 
     this.bot.once('goal_reached', () => {
@@ -118,10 +125,6 @@ class CollectBlock extends Strategy {
             }
           )
         })
-      }
-
-      if (!this._canMine(block)) {
-        cb(new Error('Does not have available tools to mine block!'))
       }
 
       const tool = this.bot.pathfinder.bestHarvestTool(block)
