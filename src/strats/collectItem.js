@@ -31,6 +31,8 @@ class CollectItem extends Strategy {
    * * distance - The maximum distance to look for item drops if specific target not specified.
    */
   run (options, cb) {
+    this.shouldExit = false
+
     if (options.item !== undefined) {
       this._handleItems([options.item], cb)
     } else if (options.items !== undefined) {
@@ -40,6 +42,11 @@ class CollectItem extends Strategy {
     } else {
       cb(new Error('Target item or search distance must be specified!'))
     }
+  }
+
+  exit () {
+    this.shouldExit = true
+    this.bot.pathfinder.setGoal(null)
   }
 
   _findNearbyItems (distance) {
@@ -77,6 +84,12 @@ class CollectItem extends Strategy {
     const bot = this.bot
 
     function checkItems () {
+      if (this.shouldExit) {
+        bot.removeListener('physicTick', checkItems)
+        cb()
+        return
+      }
+
       if (!items[items.length - 1].isValid) {
         items.pop()
 

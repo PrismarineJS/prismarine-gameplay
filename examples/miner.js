@@ -36,5 +36,10 @@ bot.on('chat', (username, message) => {
         }
       )
       break
+
+    case /^stop$/.test(message):
+      bot.chat('Stopping')
+      bot.gameplay.stopAll()
+      break
   }
 })

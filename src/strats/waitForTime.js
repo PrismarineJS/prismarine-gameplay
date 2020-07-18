@@ -20,11 +20,17 @@ class WaitForTime extends Strategy {
    * * ticks - The number of ticks to wait for.
    */
   run (options, cb) {
+    this.shouldExit = false
+
     if (options.ticks !== undefined) {
       this._waitForTime(options.ticks, cb)
     } else {
       cb(new Error('Number of ticks to wait for must be specified!'))
     }
+  }
+
+  exit () {
+    this.shouldExit = true
   }
 
   _waitForTime (ticks, cb) {
@@ -33,7 +39,7 @@ class WaitForTime extends Strategy {
     function countDown () {
       ticks--
 
-      if (ticks === 0) {
+      if (ticks === 0 || this.shouldExit) {
         bot.removeListener('physicTick', countDown)
         cb()
       }

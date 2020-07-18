@@ -26,6 +26,8 @@ class WaitForItemDrop extends Strategy {
    * * items - A list of items which were spawned
    */
   run (options, cb) {
+    this.shouldExit = false
+
     const position =
       options.position !== undefined
         ? options.position
@@ -40,6 +42,10 @@ class WaitForItemDrop extends Strategy {
       options.groupItems !== undefined ? options.groupItems : false
 
     this._waitForDrop(position, maxDistance, maxTicks, groupItems, cb)
+  }
+
+  exit () {
+    this.shouldExit = true
   }
 
   _waitForDrop (position, distance, ticks, groupItems, cb) {
@@ -58,7 +64,7 @@ class WaitForItemDrop extends Strategy {
     function countDown () {
       ticks--
 
-      if (ticks === 0) {
+      if (ticks === 0 || this.shouldExit) {
         cleanup()
       }
     }

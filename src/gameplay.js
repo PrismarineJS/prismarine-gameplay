@@ -33,42 +33,27 @@ class Gameplay {
    */
   addStrategy (strategy) {
     this.strategies.push(strategy)
+    strategy.active = false
+
     this[strategy.name] = (options, cb) => {
       try {
-        strategy.run(options, cb)
+        if (strategy.active) throw new Error('Strategy is already active!')
+
+        strategy.active = true
+        strategy.run(options, (err, returns) => {
+          strategy.active = false
+          cb(err, returns)
+        })
       } catch (err) {
+        strategy.active = false
         cb(err)
       }
     }
   }
 
-  /**
-   * Gets a strategy from this container based on the given name.
-   *
-   * @param {string} name - The name of the strategy.
-   * @returns The strategy, or undefined if there is no strategy with the given name.
-   */
-  getStrategy (name) {
-    for (const strategy of this.strategies) {
-      if (strategy.name === name) return strategy
-    }
-  }
-
-  /**
-   * Finds and begins executing the given strategy.
-   *
-   * @param {string} name - The name of the strategy to execute.
-   * @param {*} options - The options to run the strategy with.
-   * @param {*} callback - If there was an error while preforming this action.
-   */
-  runStrategy (name, options, cb) {
-    const strategy = this.getStrategy(name)
-
-    try {
-      if (strategy) strategy.run(options, cb)
-      else throw new Error(`No available strategy with the name '${name}'!`)
-    } catch (err) {
-      cb(err)
+  stopAll () {
+    for (const strat of this.strategies) {
+      if (strat.active) strat.exit()
     }
   }
 }

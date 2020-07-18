@@ -28,6 +28,8 @@ class CollectBlock extends Strategy {
    * * distance - How far away from the bot to look for this block in
    */
   run (options, cb) {
+    this.shouldExit = false
+
     if (options.block !== undefined) {
       this._handleItems([options.item], cb)
     } else if (options.blockType !== undefined) {
@@ -35,6 +37,11 @@ class CollectBlock extends Strategy {
       const id = mcData.blocksByName[options.blockType].id
 
       const findNext = () => {
+        if (this.shouldExit) {
+          cb()
+          return
+        }
+
         const block = this._findNearbyBlock(id, options.distance)
 
         if (block) this._handleBlock(block, () => findNext())
@@ -45,6 +52,11 @@ class CollectBlock extends Strategy {
     } else {
       cb(new Error('Target block must be specified!'))
     }
+  }
+
+  exit () {
+    this.shouldExit = true
+    this.bot.pathfinder.setGoal(null)
   }
 
   _findNearbyBlock (blockId, distance) {
@@ -59,8 +71,13 @@ class CollectBlock extends Strategy {
     const defaultMove = new Movements(this.bot, mcData)
     this.bot.pathfinder.setMovements(defaultMove)
 
-    const followGoal = new GoalNear(block.position)
-    this.bot.pathfinder.setGoal(followGoal)
+    const goalNear = new GoalNear(
+      block.position.x,
+      block.position.y,
+      block.position.z,
+      3
+    )
+    this.bot.pathfinder.setGoal(goalNear)
 
     this.bot.once('goal_reached', () => {
       const dig = block => {
