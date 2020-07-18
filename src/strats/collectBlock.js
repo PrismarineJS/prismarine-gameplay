@@ -5,6 +5,22 @@ const Movements = require('mineflayer-pathfinder').Movements
 const { WaitForItemDrop } = require('./waitForItemDrop')
 const { CollectItem } = require('./collectItem')
 
+function getBlockIDsByDrops (mcData, blockType) {
+  const targetId = mcData.blocksByName[blockType].id
+  const blockIds = []
+
+  for (const block of mcData.blocksArray) {
+    for (const drop of block.drops) {
+      if (drop === targetId) {
+        blockIds.push(block.id)
+        break
+      }
+    }
+  }
+
+  return blockIds
+}
+
 /**
  * A strategy which mines and collects the target block.
  * Requires the pathfinder plugin to be loaded in order to work.
@@ -40,7 +56,7 @@ class CollectBlock extends Strategy {
       this._handleItems([options.item], cb)
     } else if (options.blockType !== undefined) {
       const mcData = require('minecraft-data')(this.bot.version)
-      const id = mcData.blocksByName[options.blockType].id
+      const blockIds = getBlockIDsByDrops(mcData, options.blockType)
 
       const findNext = () => {
         if (this.shouldExit) {
@@ -48,7 +64,7 @@ class CollectBlock extends Strategy {
           return
         }
 
-        const block = this._findNearbyBlock(id, options.distance)
+        const block = this._findNearbyBlock(blockIds, options.distance)
 
         if (block) {
           this._handleBlock(block, err => {
@@ -74,9 +90,9 @@ class CollectBlock extends Strategy {
     this.bot.pathfinder.setGoal(null)
   }
 
-  _findNearbyBlock (blockId, distance) {
+  _findNearbyBlock (blockIds, distance) {
     return this.bot.findBlock({
-      matching: blockId,
+      matching: blockIds,
       maxDistance: distance
     })
   }
@@ -88,7 +104,7 @@ class CollectBlock extends Strategy {
 
     if (!this._canMine(block)) {
       cb(new Error('Does not have available tools to mine block!'))
-      return false
+      return
     }
 
     const pos = block.position
