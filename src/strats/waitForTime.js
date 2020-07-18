@@ -21,7 +21,7 @@ class WaitForTime extends Strategy {
    */
   run (options, cb) {
     if (options.ticks !== undefined) {
-      this._waitForTime(options.ticks)
+      this._waitForTime(options.ticks, cb)
     } else {
       cb(new Error('Number of ticks to wait for must be specified!'))
     }
