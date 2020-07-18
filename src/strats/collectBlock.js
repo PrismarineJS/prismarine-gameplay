@@ -111,7 +111,8 @@ class CollectBlock extends Strategy {
         })
       }
 
-      const tool = this._getBestTool(block)
+      const tool = this.bot.pathfinder.bestHarvestTool(block)
+
       if (tool) {
         this.bot.equip(tool, 'hand', err => {
           if (err) {
@@ -128,17 +129,6 @@ class CollectBlock extends Strategy {
         dig(block)
       }
     })
-  }
-
-  _getBestTool (block) {
-    const items = this.bot.inventory.items()
-    for (const i in block.harvestTools) {
-      const id = parseInt(i, 10)
-      for (const j in items) {
-        const item = items[j]
-        if (item.type === id) return item
-      }
-    }
   }
 }
 
