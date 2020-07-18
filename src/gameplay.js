@@ -22,6 +22,7 @@ class Gameplay {
   constructor (bot, loadDefault = true) {
     this.bot = bot
     this.strategies = []
+    this.activeStrategy = null
 
     if (loadDefault) loadDefaultStrategies(this)
   }
@@ -33,28 +34,28 @@ class Gameplay {
    */
   addStrategy (strategy) {
     this.strategies.push(strategy)
-    strategy.active = false
 
     this[strategy.name] = (options, cb) => {
-      try {
-        if (strategy.active) throw new Error('Strategy is already active!')
+      if (this.activeStrategy !== null) {
+        cb(new Error('Strategy is already active!'))
+        return
+      }
 
-        strategy.active = true
+      try {
+        this.activeStrategy = strategy
         strategy.run(options, (err, returns) => {
-          strategy.active = false
+          this.activeStrategy = null
           cb(err, returns)
         })
       } catch (err) {
-        strategy.active = false
+        this.activeStrategy = null
         cb(err)
       }
     }
   }
 
   stopAll () {
-    for (const strat of this.strategies) {
-      if (strat.active) strat.exit()
-    }
+    if (this.activeStrategy !== null) this.activeStrategy.exit()
   }
 }
 

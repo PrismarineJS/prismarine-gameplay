@@ -2,6 +2,9 @@ const { Strategy } = require('../strategy')
 const { GoalNear } = require('mineflayer-pathfinder').goals
 const Movements = require('mineflayer-pathfinder').Movements
 
+const { WaitForItemDrop } = require('./waitForItemDrop')
+const { CollectItem } = require('./collectItem')
+
 /**
  * A strategy which mines and collects the target block.
  * Requires the pathfinder plugin to be loaded in order to work.
@@ -14,6 +17,9 @@ class CollectBlock extends Strategy {
    */
   constructor (bot) {
     super('collectBlock', bot)
+
+    this.waitForItemDrop = new WaitForItemDrop(bot)
+    this.collectItem = new CollectItem(bot)
   }
 
   /**
@@ -55,8 +61,13 @@ class CollectBlock extends Strategy {
   }
 
   exit () {
+    this.waitForItemDrop.exit()
+    this.collectItem.exit()
+
     this.shouldExit = true
     this.bot.pathfinder.setGoal(null)
+
+    console.log('Stopped')
   }
 
   _findNearbyBlock (blockId, distance) {
@@ -87,7 +98,7 @@ class CollectBlock extends Strategy {
             return
           }
 
-          this.bot.gameplay.waitForItemDrop(
+          this.waitForItemDrop.run(
             {
               position: block.position,
               maxDistance: 5,
@@ -100,7 +111,7 @@ class CollectBlock extends Strategy {
                 return
               }
 
-              this.bot.gameplay.collectItem(
+              this.collectItem.run(
                 {
                   items: returns.items
                 },
@@ -109,6 +120,10 @@ class CollectBlock extends Strategy {
             }
           )
         })
+      }
+
+      if (!this._canMine(block)) {
+        cb(new Error('Does not have available tools to mine block!'))
       }
 
       const tool = this.bot.pathfinder.bestHarvestTool(block)
@@ -123,12 +138,24 @@ class CollectBlock extends Strategy {
           dig(block)
         })
       } else {
-        // TODO Throw error if bot doesn't have the tool required to collect the block
-        // This would probably need to be implemented after loot tables are generated
-
         dig(block)
       }
     })
+  }
+
+  _canMine (block) {
+    if (block.harvestTools === undefined) return true
+
+    const items = this.bot.inventory.items()
+    for (const tool in block.harvestTools) {
+      const id = parseInt(tool, 10)
+      for (const j in items) {
+        const item = items[j]
+        if (item.type === id) return true
+      }
+
+      return false
+    }
   }
 }
 
