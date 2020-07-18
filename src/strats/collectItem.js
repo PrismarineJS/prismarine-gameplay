@@ -13,7 +13,7 @@ class CollectItem extends Strategy {
    * @param {Bot} bot - The bot to act on.
    */
   constructor (bot) {
-    super('collect_item', bot)
+    super('collectItem', bot)
   }
 
   /**
@@ -21,6 +21,9 @@ class CollectItem extends Strategy {
    *
    * Options:
    * * item - The item drop to pick up. If undefined, bot targets all nearby item drops.
+   *
+   * _OR_
+   *
    * * distance - The maximum distance to look for item drops if specific target not specified.
    */
   run (options, cb) {

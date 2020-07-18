@@ -28,8 +28,7 @@ bot.on('chat', (username, message) => {
 })
 
 function collectItems () {
-  bot.gameplay.runStrategy(
-    'collect_item',
+  bot.gameplay.collectItem(
     {
       distance: 20
     },
