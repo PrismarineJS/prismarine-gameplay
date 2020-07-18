@@ -66,8 +66,6 @@ class CollectBlock extends Strategy {
 
     this.shouldExit = true
     this.bot.pathfinder.setGoal(null)
-
-    console.log('Stopped')
   }
 
   _findNearbyBlock (blockId, distance) {
