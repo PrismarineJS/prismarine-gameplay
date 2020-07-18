@@ -48,6 +48,7 @@ class WaitForItemDrop extends Strategy {
 
     function cleanup () {
       bot.removeListener('physicTick', countDown)
+      bot.removeListener('entitySpawn', entitySpawn)
       cb(undefined, {
         items: items
       })

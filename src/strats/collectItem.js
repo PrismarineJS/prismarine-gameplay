@@ -20,7 +20,11 @@ class CollectItem extends Strategy {
    * @inheritdoc
    *
    * Options:
-   * * item - The item drop to pick up. If undefined, bot targets all nearby item drops.
+   * * item - The item drop to pick up.
+   *
+   * _OR_
+   *
+   * * items - A list of items drops to pick up.
    *
    * _OR_
    *
@@ -29,6 +33,8 @@ class CollectItem extends Strategy {
   run (options, cb) {
     if (options.item !== undefined) {
       this._handleItems([options.item], cb)
+    } else if (options.items !== undefined) {
+      this._handleItems(options.items, cb)
     } else if (options.distance !== undefined) {
       this._handleItems(this._findNearbyItems(options.distance), cb)
     } else {

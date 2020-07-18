@@ -70,23 +70,27 @@ class CollectBlock extends Strategy {
             return
           }
 
-          this.bot.gameplay.waitForTime({ ticks: 20 }, err => {
-            if (err) {
-              cb(err)
-              return
+          this.bot.gameplay.waitForItemDrop(
+            {
+              position: block.position,
+              maxDistance: 5,
+              maxTicks: 20,
+              groupItems: true
+            },
+            (err, returns) => {
+              if (err) {
+                cb(err)
+                return
+              }
+
+              this.bot.gameplay.collectItem(
+                {
+                  items: returns.items
+                },
+                err => cb(err)
+              )
             }
-
-            // TODO Replace this simple 'waitForTime' approach for a more viable option.
-            // Namely, a function which waits for the actual item drop entity to spawn
-            // and collects that item directly.
-
-            this.bot.gameplay.collectItem(
-              {
-                distance: 10
-              },
-              err => cb(err)
-            )
-          })
+          )
         })
       }
 
