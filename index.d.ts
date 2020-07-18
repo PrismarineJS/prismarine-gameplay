@@ -14,6 +14,6 @@ export class Strategy
     name: string;
     bot: Bot;
     constructor(name: string, bot: Bot);
-    run(options: any, cb: (err?: Error) => void): void;
+    run(options: any, cb: (err?: Error, returns?: any) => void): void;
     exit(): void;
 }

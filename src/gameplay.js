@@ -1,11 +1,13 @@
 const { CollectItem } = require('./strats/collectItem')
 const { CollectBlock } = require('./strats/collectBlock')
 const { WaitForTime } = require('./strats/waitForTime')
+const { WaitForItemDrop } = require('./strats/waitForItemDrop')
 
 function loadDefaultStrategies (gameplay) {
   gameplay.addStrategy(new CollectItem(gameplay.bot))
   gameplay.addStrategy(new CollectBlock(gameplay.bot))
   gameplay.addStrategy(new WaitForTime(gameplay.bot))
+  gameplay.addStrategy(new WaitForItemDrop(gameplay.bot))
 }
 
 /**
@@ -17,11 +19,11 @@ class Gameplay {
    *
    * @param {Bot} bot - The bot this gameplay container is acting upon
    */
-  constructor (bot) {
+  constructor (bot, loadDefault = true) {
     this.bot = bot
     this.strategies = []
 
-    loadDefaultStrategies(this)
+    if (loadDefault) loadDefaultStrategies(this)
   }
 
   /**
