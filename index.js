@@ -1,4 +1,4 @@
-const Gameplay = require('./src/gameplay')
+const { Gameplay } = require('./src/gameplay')
 
 function inject (bot) {
   bot.gameplay = new Gameplay(bot)

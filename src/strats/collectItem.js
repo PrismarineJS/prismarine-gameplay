@@ -1,5 +1,6 @@
 const { Strategy } = require('../strategy')
 const { GoalFollow } = require('mineflayer-pathfinder').goals
+const Movements = require('mineflayer-pathfinder').Movements
 
 /**
  * A simple task which collects a specific item from the ground.
@@ -64,11 +65,32 @@ class CollectItem extends Strategy {
       return
     }
 
-    const item = items.pop()
-    const followGoal = new GoalFollow(item)
+    const bot = this.bot
 
-    this.bot.pathfinder.setGoal(followGoal)
-    this.bot.pathfinder.once('goal_reached', () => this._handleItems(items, cb))
+    function checkItems () {
+      if (!items[items.length - 1].isValid) {
+        items.pop()
+
+        if (items.length === 0) {
+          bot.removeListener('physicTick', checkItems)
+          bot.pathfinder.setGoal(null)
+          cb()
+          return
+        }
+
+        const followGoal = new GoalFollow(items[items.length - 1], 0)
+        bot.pathfinder.setGoal(followGoal)
+      }
+    }
+
+    const mcData = require('minecraft-data')(this.bot.version)
+    const defaultMove = new Movements(this.bot, mcData)
+    bot.pathfinder.setMovements(defaultMove)
+
+    bot.on('physicTick', checkItems)
+
+    const followGoal = new GoalFollow(items[items.length - 1], 0)
+    bot.pathfinder.setGoal(followGoal)
   }
 }
 
