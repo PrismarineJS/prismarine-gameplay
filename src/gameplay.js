@@ -1,6 +1,6 @@
 const { CollectItem } = require('./strats/collectItem')
-const { CollectBlock } = require('./strategy/CollectBlock')
-const { WaitForTime } = require('./strategy/WaitForTime')
+const { CollectBlock } = require('./strats/collectBlock')
+const { WaitForTime } = require('./strats/waitForTime')
 
 function loadDefaultStrategies (gameplay) {
   gameplay.addStrategy(new CollectItem(gameplay.bot))
@@ -31,7 +31,13 @@ class Gameplay {
    */
   addStrategy (strategy) {
     this.strategies.push(strategy)
-    this[strategy.name] = (options, cb) => strategy.run(options, cb)
+    this[strategy.name] = (options, cb) => {
+      try {
+        strategy.run(options, cb)
+      } catch (err) {
+        cb(err)
+      }
+    }
   }
 
   /**
