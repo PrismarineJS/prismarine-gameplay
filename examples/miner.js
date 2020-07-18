@@ -1,6 +1,6 @@
 const mineflayer = require('mineflayer')
 const pathfinder = require('mineflayer-pathfinder').pathfinder
-const gameplay = require('../').gameplay
+const gameplay = require('..').gameplay
 
 if (process.argv.length < 4 || process.argv.length > 6) {
   console.log(
@@ -20,20 +20,21 @@ bot.loadPlugin(pathfinder)
 bot.loadPlugin(gameplay)
 
 bot.on('chat', (username, message) => {
+  if (username === bot.username) return
+
+  const command = message.split(' ')
   switch (true) {
-    case /^collect$/.test(message):
-      collectItems()
+    case /^collect [a-zA-Z_]+$/.test(message):
+      bot.chat('Mining for ' + command[1])
+      bot.gameplay.collectBlock(
+        {
+          blockType: command[1],
+          distance: 16
+        },
+        err => {
+          if (err) console.log(err)
+        }
+      )
       break
   }
 })
-
-function collectItems () {
-  bot.gameplay.collectItem(
-    {
-      distance: 20
-    },
-    err => {
-      if (err) console.log(err)
-    }
-  )
-}

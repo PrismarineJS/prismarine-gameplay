@@ -21,13 +21,37 @@ class CollectBlock extends Strategy {
    *
    * Options:
    * * block - The block to mine and collect
+   *
+   * _OR_
+   *
+   * * blockType - The type of block to look for.
+   * * distance - How far away from the bot to look for this block in
    */
   run (options, cb) {
     if (options.block !== undefined) {
       this._handleItems([options.item], cb)
+    } else if (options.blockType !== undefined) {
+      const mcData = require('minecraft-data')(this.bot.version)
+      const id = mcData.blocksByName[options.blockType].id
+
+      const findNext = () => {
+        const block = this._findNearbyBlock(id, options.distance)
+
+        if (block) this._handleBlock(block, () => findNext())
+        else cb()
+      }
+
+      findNext()
     } else {
       cb(new Error('Target block must be specified!'))
     }
+  }
+
+  _findNearbyBlock (blockId, distance) {
+    return this.bot.findBlock({
+      matching: blockId,
+      maxDistance: distance
+    })
   }
 
   _handleBlock (block, cb) {
@@ -66,7 +90,7 @@ class CollectBlock extends Strategy {
         })
       }
 
-      const tool = this.getBestTool(block)
+      const tool = this._getBestTool(block)
       if (tool) {
         this.bot.equip(tool, 'hand', err => {
           if (err) {
