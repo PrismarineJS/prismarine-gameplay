@@ -1,6 +1,5 @@
 class SolverNode {
-  constructor (goal, state) {
-    this.goal = goal
+  constructor (state) {
     this.state = state
 
     this._cost = 0
@@ -29,10 +28,7 @@ class SolverNode {
   }
 
   createChild () {
-    const goal = this.goal
-    const state = this.state.clone()
-
-    const node = new SolverNode(goal, state)
+    const node = new SolverNode(this.state.clone())
     node.cost = this.cost
     node.heuristic = this.heuristic
     node.parent = this
