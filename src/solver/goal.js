@@ -1,6 +1,7 @@
 class Goal {
-  constructor (state) {
+  constructor (state, targets) {
     this.state = state
+    this.targets = targets
   }
 }
 

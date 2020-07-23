@@ -1,12 +1,11 @@
 class SolverNode {
-  constructor (goal, state, targets) {
+  constructor (goal, state) {
     this.goal = goal
     this.state = state
-    this.targets = targets
 
     this._cost = 0
     this._heuristic = 0
-    this._fScore = 0
+    this.fScore = 0
     this.task = null
     this.parent = null
   }
@@ -29,16 +28,11 @@ class SolverNode {
     return this._heuristic
   }
 
-  get fScore () {
-    return this.fScore
-  }
-
   createChild () {
     const goal = this.goal
     const state = this.state.clone()
-    const targets = this.targets.clone()
 
-    const node = new SolverNode(goal, state, targets)
+    const node = new SolverNode(goal, state)
     node.cost = this.cost
     node.heuristic = this.heuristic
     node.parent = this

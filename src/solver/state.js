@@ -1,15 +1,17 @@
-class StrategyState {
-  constructor (bot) {
+class SolverState {
+  constructor (bot, targets) {
     this.bot = bot
+    this.targets = targets
   }
 
   clone () {
-    const state = new StrategyState(this.bot)
+    const state = new SolverState()
+
     for (const prop in this) state[prop] = this[prop]
-    state.parent = this
+    state.targets = state.targets.clone()
 
     return state
   }
 }
 
-module.exports = StrategyState
+module.exports = SolverState
