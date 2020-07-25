@@ -45,9 +45,9 @@ class Solver extends EventEmitter {
       child.task = strat
       child.depth = node.depth + 1
 
+      strat.modifyState(child.state)
       if (!strat.isValid(child.state, this.goalFlags)) continue
 
-      strat.modifyState(child.state)
       child.cost += strat.estimateExecutionTime(child.state)
       child.heuristic = strat.estimateHeuristic(child.state, this.goalFlags)
 

@@ -14,10 +14,6 @@ class ColorStrat extends Strategy {
     if (cb) cb()
   }
 
-  isValid (state) {
-    return state.last !== this.color
-  }
-
   modifyState (state) {
     if (state[this.color] === undefined) state[this.color] = 1
     else state[this.color]++
