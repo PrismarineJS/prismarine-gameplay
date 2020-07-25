@@ -57,7 +57,7 @@ class Solver extends EventEmitter {
 
   _isSolved (node) {
     for (const prop in this.goalFlags) {
-      if (node.state.flags[prop] !== this.goalFlags[prop]) return false
+      if (node.state[prop] !== this.goalFlags[prop]) return false
     }
 
     return true

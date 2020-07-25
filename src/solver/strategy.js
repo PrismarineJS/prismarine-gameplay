@@ -1,5 +1,5 @@
 class Strategy {
-  estimateExecutionTime (state) {
+  estimateExecutionTime () {
     return 10
   }
 
@@ -9,7 +9,7 @@ class Strategy {
     cb()
   }
 
-  modifyState (state) {
+  modifyState () {
     // Do nothing by default
   }
 
@@ -22,22 +22,23 @@ class Strategy {
 
       switch (typeof flagVal) {
         case 'number':
-          if (state.flags[flagName] === undefined) flagH = flagVal
-          else flagH = Math.abs(state.flags[flagName] - flagVal)
+          if (state[flagName] === undefined) flagH = (flagVal + 1) * 10
+          else flagH = Math.abs(state[flagName] - flagVal) * 10
           break
 
         default:
-          if (state.flags[flagName] !== flagVal) flagH = 10
+          if (state[flagName] !== flagVal) flagH = 100
           break
       }
 
-      if (!isNaN(flagH)) h += flagH * 10
+      if (!isNaN(flagH)) h += flagH
+      else h += 100
     }
 
     return h
   }
 
-  isValid (state) {
+  isValid () {
     return true
   }
 }

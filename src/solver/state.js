@@ -6,18 +6,14 @@ class SolverState {
 
     this.bot = bot
     this.targets = targets
-    this.flags = {}
   }
 
   clone () {
-    const state = new SolverState()
+    const state = new SolverState(this.bot, this.targets.clone())
 
-    for (const prop in this) state[prop] = this[prop]
-
-    state.targets = state.targets.clone()
-    state.flags = {}
-
-    for (const prop in this.flags) state.flags[prop] = this.flags[prop]
+    for (const prop in this) {
+      if (state[prop] === undefined) state[prop] = this[prop]
+    }
 
     return state
   }

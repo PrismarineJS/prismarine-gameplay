@@ -19,8 +19,8 @@ class ColorStrat extends Strategy {
   }
 
   modifyState (state) {
-    if (state.flags[this.color] === undefined) state.flags[this.color] = 1
-    else state.flags[this.color]++
+    if (state[this.color] === undefined) state[this.color] = 1
+    else state[this.color]++
 
     state.last = this.color
   }
@@ -41,12 +41,10 @@ const goal = {
 }
 
 const state = new SolverState(this.bot)
-state.flags = {
-  Red: 0,
-  Blue: 0,
-  Green: 0,
-  Purple: 0
-}
+state.Red = 0
+state.Blue = 0
+state.Green = 0
+state.Purple = 0
 
 const solver = new Solver(state, goal, strats)
 
