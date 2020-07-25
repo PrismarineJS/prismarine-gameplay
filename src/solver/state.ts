@@ -1,12 +1,19 @@
 import { Targets } from './targets';
 import { Bot } from 'mineflayer';
+import { Vec3 } from 'vec3';
+
+export interface ModifiedBlock
+{
+  position: Vec3;
+  type: string;
+}
 
 export class SolverState
 {
   readonly bot: Bot;
   readonly targets: Targets;
 
-  [property: string]: any;
+  modifiedBlocks: ModifiedBlock[] = [];
 
   constructor(bot: Bot, targets?: Targets)
   {
@@ -21,10 +28,19 @@ export class SolverState
   {
     const state = new SolverState(this.bot, this.targets.clone());
 
-    for (const prop in this)
-      if (state[prop] === undefined)
-        state[prop] = this[prop];
+    state.modifiedBlocks = [...this.modifiedBlocks];
 
     return state;
+  }
+
+  getBlockAt(position: Vec3): string
+  {
+    for (const blockType of this.modifiedBlocks)
+    {
+      if (blockType.position.equals(position))
+        return blockType.type;
+    }
+
+    return this.bot.blockAt(position)?.name || "air";
   }
 }

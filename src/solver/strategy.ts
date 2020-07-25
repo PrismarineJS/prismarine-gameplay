@@ -1,12 +1,11 @@
 import { SolverState } from './state';
 import { Targets } from './targets';
-import { Goal } from './goal';
+
+export type Callback = (err?: Error) => void;
 
 export interface Strategy
 {
-  modifyState(state: SolverState): void;
-  isValid(state: SolverState, goal: Goal): boolean;
+  modifyState(state: SolverState): boolean;
   estimateExecutionTime(state: SolverState): number;
-  estimateHeuristic(state: SolverState, goal: Goal): number;
-  execute(targets: Targets, cb: (err?: Error) => void): void;
+  execute(targets: Targets, cb: Callback): void;
 }

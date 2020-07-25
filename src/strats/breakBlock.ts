@@ -1,6 +1,6 @@
 import { Bot } from "mineflayer";
-import { Strategy } from '../solver/strategy';
-import { SolverState, Targets, Goal } from "../solver";
+import { Strategy, Callback } from '../solver/strategy';
+import { SolverState, Targets } from "../solver";
 
 export class BreakBlockStrategy implements Strategy
 {
@@ -11,28 +11,45 @@ export class BreakBlockStrategy implements Strategy
     this.bot = bot
   }
 
-  modifyState(state: SolverState): void
+  modifyState(state: SolverState): boolean
   {
-    throw new Error("Method not implemented.");
-  }
+    if (!state.targets.blockPosition)
+      return false;
 
-  isValid(state: SolverState, goal: Goal): boolean
-  {
-    throw new Error("Method not implemented.");
+    if (state.getBlockAt(state.targets.blockPosition) === 'air')
+      return false;
+
+    state.modifiedBlocks.push({
+      position: state.targets.blockPosition,
+      type: "air"
+    });
+
+    return true;
   }
 
   estimateExecutionTime(state: SolverState): number
   {
+    // TODO Calculate tools available
     return 20
   }
 
-  estimateHeuristic(state: SolverState, goal: Goal): number
+  execute(targets: Targets, cb: Callback): void
   {
-    throw new Error("Method not implemented.");
-  }
+    try
+    {
+      if (targets.blockPosition === undefined)
+        throw new Error("Block position not defined in targets!");
 
-  execute(targets: Targets, cb: (err?: Error | undefined) => void): void
-  {
-    throw new Error("Method not implemented.");
+      const block = this.bot.blockAt(targets.blockPosition);
+
+      if (!block || block.name === 'air' || block.name === 'bedrock')
+        throw new Error(`Cannot mine block type '${block?.name || 'air'}'!`);
+
+      this.bot.dig(block, cb);
+    }
+    catch (err)
+    {
+      cb(err)
+    }
   }
 }

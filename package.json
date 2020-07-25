@@ -40,6 +40,7 @@
     "heap": "^0.2.6",
     "mineflayer": "^2.24.0",
     "mineflayer-pathfinder": "^1.0.9",
-    "typescript": "^3.9.7"
+    "typescript": "^3.9.7",
+    "vec3": "^0.1.6"
   }
 }

@@ -1,4 +1,4 @@
-import { SolverState, Goal, Targets, Strategy } from '../solver';
+import { SolverState, Targets, Strategy, Callback } from '../solver';
 import { Bot } from 'mineflayer';
 
 function getBlockTypesByDrops(mcData: any, blockType: string): string[]
@@ -32,17 +32,17 @@ export class GetBlocksThatDropStrategy implements Strategy
     this.bot = bot
   }
 
-  modifyState(state: SolverState): void
+  modifyState(state: SolverState): boolean
   {
-    this.findBlocks(state.targets);
-  }
-
-  isValid(state: SolverState): boolean
-  {
-    if (state.targets.blockTypes === undefined)
+    try 
+    {
+      this.findBlocks(state.targets);
+      return true;
+    }
+    catch (err)
+    {
       return false;
-
-    return state.targets.blockTypes.length > 0
+    }
   }
 
   estimateExecutionTime(state: SolverState): number
@@ -50,12 +50,7 @@ export class GetBlocksThatDropStrategy implements Strategy
     return 1;
   }
 
-  estimateHeuristic(state: SolverState, goal: Goal): number
-  {
-    throw new Error("Method not implemented.");
-  }
-
-  execute(targets: Targets, cb: (err?: Error) => void): void
+  execute(targets: Targets, cb: Callback): void
   {
     try
     {
