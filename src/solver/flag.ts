@@ -63,27 +63,3 @@ export class FlagContainer
         return container;
     }
 }
-
-export class FlagInitializer
-{
-    readonly flags: Flag[] = [];
-
-    registerFlag(flag: Flag): void
-    {
-        this.flags.push(flag);
-    }
-
-    createContainer(bot: Bot): FlagContainer
-    {
-        const container = new FlagContainer();
-
-        for (const flag of this.flags)
-        {
-            const f = flag.clone();
-            f.initializeRealValue(bot);
-            container.flags.push(f);
-        }
-
-        return container;
-    }
-}
