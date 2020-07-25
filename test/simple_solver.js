@@ -1,6 +1,7 @@
 const Strategy = require('../src/solver/strategy')
 const Solver = require('../src/solver/solver')
 const SolverState = require('../src/solver/state')
+const Targets = require('../src/solver/targets')
 
 class ColorStrat extends Strategy {
   constructor (color) {
@@ -47,7 +48,8 @@ const solver = new Solver(state, goal, strats)
 solver.once('solutionFound', result => {
   console.log(`Found solution in ${result.steps} steps.`)
 
-  for (const task of result.taskList) task.execute()
+  const targets = new Targets()
+  for (const task of result.taskList) task.execute(targets)
 
   process.exit(0)
 })

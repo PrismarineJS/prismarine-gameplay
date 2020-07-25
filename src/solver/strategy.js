@@ -3,7 +3,7 @@ class Strategy {
     return 10
   }
 
-  execute (cb) {
+  execute (targets, cb) {
     // Do nothing by default
 
     cb()
