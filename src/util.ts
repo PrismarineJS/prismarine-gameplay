@@ -1,7 +1,7 @@
 import { FlagContainer, Flag } from "./solver/flag";
 import { ModifiedBlocksFlag } from "./flags";
 import { Strategy } from "./solver";
-import { GetBlocksThatDropStrategy, BreakBlockStrategy } from "./strats";
+import { GetBlocksThatDropStrategy, BreakBlockStrategy, GetNearbyBlocksOfType } from "./strats";
 import { Bot } from "mineflayer";
 
 function registerFlag(container: FlagContainer, bot: Bot, flag: Flag): void
@@ -23,6 +23,7 @@ export function defaultStrategies(bot: Bot): Strategy[]
 {
     return [
         new GetBlocksThatDropStrategy(bot),
-        new BreakBlockStrategy(bot)
+        new BreakBlockStrategy(bot),
+        new GetNearbyBlocksOfType(bot)
     ]
 }
