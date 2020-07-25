@@ -65,10 +65,38 @@ export class Solver extends EventEmitter
         continue;
 
       child.cost += strat.estimateExecutionTime(child.state);
-      child.heuristic = strat.estimateHeuristic(child.state, this.goal);
+      child.heuristic = this.estimateHeuristic(child.state);
 
       this.openNodes.push(child);
     }
+  }
+
+  private estimateHeuristic(state: SolverState): number
+  {
+    let h = 0;
+
+    for (const flagName in this.goal)
+    {
+      const flagVal = this.goal[flagName];
+      let flagH = 0;
+
+      switch (typeof flagVal)
+      {
+        case 'number':
+          if (state[flagName] === undefined) flagH = (flagVal + 1) * 10
+          else flagH = Math.abs(state[flagName] - flagVal) * 10
+          break
+
+        default:
+          if (state[flagName] !== flagVal) flagH = 100
+          break
+      }
+
+      if (!isNaN(flagH)) h += flagH;
+      else h += 100;
+    }
+
+    return h;
   }
 
   private isSolved(node: SolverNode): boolean
