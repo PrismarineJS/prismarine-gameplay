@@ -1,4 +1,4 @@
-export * from './goal';
+export * from './flag';
 export * from './node';
 export * from './solver';
 export * from './state';

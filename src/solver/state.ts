@@ -1,46 +1,22 @@
 import { Targets } from './targets';
 import { Bot } from 'mineflayer';
-import { Vec3 } from 'vec3';
-
-export interface ModifiedBlock
-{
-  position: Vec3;
-  type: string;
-}
+import { FlagContainer } from './flag';
 
 export class SolverState
 {
   readonly bot: Bot;
   readonly targets: Targets;
+  readonly flags: FlagContainer;
 
-  modifiedBlocks: ModifiedBlock[] = [];
-
-  constructor(bot: Bot, targets?: Targets)
+  constructor(bot: Bot, targets: Targets, flags: FlagContainer)
   {
-    if (targets === undefined)
-      targets = new Targets();
-
     this.bot = bot
     this.targets = targets
+    this.flags = flags;
   }
 
   clone(): SolverState
   {
-    const state = new SolverState(this.bot, this.targets.clone());
-
-    state.modifiedBlocks = [...this.modifiedBlocks];
-
-    return state;
-  }
-
-  getBlockAt(position: Vec3): string
-  {
-    for (const blockType of this.modifiedBlocks)
-    {
-      if (blockType.position.equals(position))
-        return blockType.type;
-    }
-
-    return this.bot.blockAt(position)?.name || "air";
+    return new SolverState(this.bot, this.targets.clone(), this.flags.clone());
   }
 }

@@ -1,6 +1,7 @@
 import { Bot } from "mineflayer";
 import { Strategy, Callback } from '../solver/strategy';
 import { SolverState, Targets } from "../solver";
+import { ModifiedBlocksFlag } from "../flags";
 
 export class BreakBlockStrategy implements Strategy
 {
@@ -16,14 +17,13 @@ export class BreakBlockStrategy implements Strategy
     if (!state.targets.blockPosition)
       return false;
 
-    if (state.getBlockAt(state.targets.blockPosition) === 'air')
+    const modifiedBlocks = <ModifiedBlocksFlag>state.flags.getFlag('modifiedBlocks');
+
+    const blockType = modifiedBlocks.getBlockAt(state.targets.blockPosition);
+    if (blockType === 'air' || blockType === 'bedrock')
       return false;
 
-    state.modifiedBlocks.push({
-      position: state.targets.blockPosition,
-      type: "air"
-    });
-
+    modifiedBlocks.setBlockAt(state.targets.blockPosition, 'air');
     return true;
   }
 

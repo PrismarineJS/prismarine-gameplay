@@ -45,7 +45,7 @@ export class GetBlocksThatDropStrategy implements Strategy
     }
   }
 
-  estimateExecutionTime(state: SolverState): number
+  estimateExecutionTime(): number
   {
     return 1;
   }

@@ -1,20 +1,20 @@
 import { EventEmitter } from 'events';
 import { SolverNode } from './node';
 import { SolverState } from './state';
-import { Goal } from './goal';
 import { Strategy } from './strategy';
+import { FlagContainer } from './flag';
 import Heap from 'heap';
 
 export class Solver extends EventEmitter
 {
-  readonly goal: Goal;
+  readonly goal: FlagContainer;
   readonly strategies: Strategy[];
   readonly openNodes: Heap<SolverNode>;
   readonly maxDepth: number;
 
   steps: number;
 
-  constructor(initialState: SolverState, goal: Goal, strategies: Strategy[], maxDepth: number = 50)
+  constructor(initialState: SolverState, goal: FlagContainer, strategies: Strategy[], maxDepth: number = 50)
   {
     super();
 
@@ -42,7 +42,7 @@ export class Solver extends EventEmitter
     const node = this.openNodes.pop();
     this.steps++;
 
-    if (this.isSolved(node))
+    if (node.state.flags.matchesGoal(this.goal))
     {
       this.emit('solutionFound', {
         taskList: this.buildTaskList(node),
@@ -60,54 +60,14 @@ export class Solver extends EventEmitter
       const child = node.createChild();
       child.task = strat;
 
-      strat.modifyState(child.state);
-      if (!strat.isValid(child.state, this.goal))
+      if (!strat.modifyState(child.state))
         continue;
 
       child.cost += strat.estimateExecutionTime(child.state);
-      child.heuristic = this.estimateHeuristic(child.state);
+      child.heuristic = child.state.flags.getDistanceToGoal(this.goal);
 
       this.openNodes.push(child);
     }
-  }
-
-  private estimateHeuristic(state: SolverState): number
-  {
-    let h = 0;
-
-    for (const flagName in this.goal)
-    {
-      const flagVal = this.goal[flagName];
-      let flagH = 0;
-
-      switch (typeof flagVal)
-      {
-        case 'number':
-          if (state[flagName] === undefined) flagH = (flagVal + 1) * 10
-          else flagH = Math.abs(state[flagName] - flagVal) * 10
-          break
-
-        default:
-          if (state[flagName] !== flagVal) flagH = 100
-          break
-      }
-
-      if (!isNaN(flagH)) h += flagH;
-      else h += 100;
-    }
-
-    return h;
-  }
-
-  private isSolved(node: SolverNode): boolean
-  {
-    for (const prop in this.goal)
-    {
-      if (node.state[prop] !== this.goal[prop])
-        return false;
-    }
-
-    return true;
   }
 
   private buildTaskList(node: SolverNode): Strategy[]
