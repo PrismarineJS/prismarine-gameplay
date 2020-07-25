@@ -14,20 +14,12 @@ export class GetNearbyBlocksOfType implements Strategy
 
     modifyState(state: SolverState): boolean
     {
-        try 
-        {
-            this.findBlocks(state.targets);
-            return true;
-        }
-        catch (err)
-        {
-            return false;
-        }
+        return state.targets.blockTypes.length > 0;
     }
 
     estimateExecutionTime(): number
     {
-        return 3
+        return 3;
     }
 
     execute(targets: Targets, cb: Callback): void
@@ -57,8 +49,7 @@ export class GetNearbyBlocksOfType implements Strategy
 
         const blocks = this.bot.findBlocks({
             matching: block => blockIds.indexOf(block.type) >= 0,
-            maxDistance: 32,
-            point: this.bot.entity.position // TODO Assign to future position.
+            maxDistance: 32
         });
 
         targets.blockPositions = [];
