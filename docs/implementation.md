@@ -10,9 +10,11 @@
 - [2. Infinite State Machine Approach](#2-infinite-state-machine-approach)
   - [2.1. Hierarchy](#21-hierarchy)
   - [2.2. Plugins](#22-plugins)
-  - [2.3. Limitations](#23-limitations)
-  - [2.3.1. Hard Dependencies](#231-hard-dependencies)
-  - [2.3.2. Interrupting Tasks](#232-interrupting-tasks)
+  - [2.3. Global Parameters](#23-global-parameters)
+  - [2.4. Highly Reusable Strategies](#24-highly-reusable-strategies)
+  - [2.5. Limitations](#25-limitations)
+  - [2.5.1. Hard Dependencies](#251-hard-dependencies)
+  - [2.5.2. Interrupting Tasks](#252-interrupting-tasks)
 
 ---
 
@@ -56,11 +58,21 @@ These plugins can be loaded into the bot by calling `bot.gameplay.addStrategy(my
 
 Through the use of plugins, it also becomes extremely easy to define behaviors which are specific to a specific server or custom mini game. Some servers offer virtual shops which can be used to obtain resources without needing to collect them manually. Creating a strategy which allows the bot to understand how to use the in-game shop would be useful here as it might just be significantly easier to buy a given resource rather than try and hunt down that resource manually.
 
-### 2.3. Limitations
+### 2.3. Global Parameters
+
+Because new strategy instances are created as the solver dives deeper and deeper into the search tree, it can be extremely useful to provide a set of global parameters to follow that all strategy instances can read from regardless of depth. This would be helpful to specify what kind of conditions are expected. This could contain information such as whether or not the bot is capable of XRay, should ignore hunger, priority levels of ores, whether or not to place torches, etc.
+
+It would be up to strategies individually to choose what properties to read and what properties to ignore.
+
+### 2.4. Highly Reusable Strategies
+
+By makes strategies more configurable they become significantly more reusable. You wouldn't need as many different strategies in order to produce more complex behaviors. This would also mean less code to maintain overall and less code to update if more strategies are added to the game which rely on old strategies being tweaked.
+
+### 2.5. Limitations
 
 There are currently two major limitations exist with this dynamic state approach. Below are the limitations and proposed solutions to overcoming these limitations.
 
-### 2.3.1. Hard Dependencies
+### 2.5.1. Hard Dependencies
 
 The first major problem lies with the implementation of hard dependencies in the state machine. A strategy/plugin will always execute the same children. In closed environments, this is never an issue. However, when loading new strategies, these new strategies are never considered by the original, pre-defined strategy functions. While new strategies can always call existing strategies, existing strategies can never call new strategies.
 
@@ -96,7 +108,7 @@ Injection based task selection is a modification of the above heuristic-based so
 
 While this solution fixes most of the issues from the heuristic based solution, it also proposes a new problem in which two separate plugins would not be able to see each other, meaning a bridge plugin would need to be made in those situations in order for either plugin to consider using the other plugin's strategies directly. On the flip side, both plugins could still be expecting by the default strategies without needing to know about the existence of the other, meaning that indirect communication does still exist by default.
 
-### 2.3.2. Interrupting Tasks
+### 2.5.2. Interrupting Tasks
 
 There are several situations that may occur while executing tasks which require the bot to stop executing it's current task temporarily. Some common examples of these situations are being attacked by a random mob, receiving heavy damage, unexpected potion effects, or being hungry.
 
