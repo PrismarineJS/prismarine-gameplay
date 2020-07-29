@@ -6,9 +6,7 @@
   "scripts": {
     "test": "jest --verbose",
     "pretest": "npm run lint && require-self",
-    "prepare": "npm install require-self && require-self",
-    "lint": "standard",
-    "fix": "standard --fix"
+    "prepare": "npm install require-self && require-self && tsc"
   },
   "repository": {
     "type": "git",
@@ -21,8 +19,10 @@
     "minecraft",
     "ai"
   ],
-  "author": "Romain Beaumont",
-  "contributors": ["TheDudeFromCI"],
+  "author": "TheDudeFromCI",
+  "contributors": [
+    "Romain Beaumont"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/PrismarineJS/prismarine-gameplay/issues"
@@ -30,10 +30,10 @@
   "homepage": "https://github.com/PrismarineJS/prismarine-gameplay#readme",
   "devDependencies": {
     "jest": "^26.1.0",
-    "require-self": "^0.2.3",
-    "standard": "^14.3.4"
+    "require-self": "^0.2.3"
   },
   "dependencies": {
-    "mineflayer-pathfinder": "^1.0.9"
+    "mineflayer-pathfinder": "^1.0.9",
+    "typescript": "^3.9.7"
   }
 }
