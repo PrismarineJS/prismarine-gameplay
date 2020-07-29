@@ -2,11 +2,11 @@
   "name": "prismarine-gameplay",
   "version": "0.1.0",
   "description": "A high level API plugin for controlling Mineflayer bots.",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "jest --verbose",
-    "pretest": "npm run lint && require-self",
-    "prepare": "npm install require-self && require-self && tsc"
+    "pretest": "require-self",
+    "prepare": "tsc && require-self"
   },
   "repository": {
     "type": "git",
@@ -33,7 +33,14 @@
     "require-self": "^0.2.3"
   },
   "dependencies": {
+    "mineflayer": "^2.25.0",
     "mineflayer-pathfinder": "^1.0.9",
-    "typescript": "^3.9.7"
-  }
+    "prismarine-block": "^1.7.1",
+    "prismarine-entity": "^1.0.0",
+    "typescript": "^3.9.7",
+    "vec3": "^0.1.6"
+  },
+  "files": [
+    "lib/**/*"
+  ]
 }
