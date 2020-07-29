@@ -2,13 +2,11 @@
   "name": "prismarine-gameplay",
   "version": "0.1.0",
   "description": "A high level API plugin for controlling Mineflayer bots.",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "jest --verbose",
-    "pretest": "npm run lint && require-self",
-    "prepare": "npm install require-self && require-self",
-    "lint": "standard",
-    "fix": "standard --fix"
+    "pretest": "require-self",
+    "prepare": "tsc && require-self"
   },
   "repository": {
     "type": "git",
@@ -21,8 +19,10 @@
     "minecraft",
     "ai"
   ],
-  "author": "Romain Beaumont",
-  "contributors": ["TheDudeFromCI"],
+  "author": "TheDudeFromCI",
+  "contributors": [
+    "Romain Beaumont"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/PrismarineJS/prismarine-gameplay/issues"
@@ -30,10 +30,17 @@
   "homepage": "https://github.com/PrismarineJS/prismarine-gameplay#readme",
   "devDependencies": {
     "jest": "^26.1.0",
-    "require-self": "^0.2.3",
-    "standard": "^14.3.4"
+    "require-self": "^0.2.3"
   },
   "dependencies": {
-    "mineflayer-pathfinder": "^1.0.9"
-  }
+    "mineflayer": "^2.25.0",
+    "mineflayer-pathfinder": "^1.0.9",
+    "prismarine-block": "^1.7.1",
+    "prismarine-entity": "^1.0.0",
+    "typescript": "^3.9.7",
+    "vec3": "^0.1.6"
+  },
+  "files": [
+    "lib/**/*"
+  ]
 }

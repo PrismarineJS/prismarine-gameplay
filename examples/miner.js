@@ -1,6 +1,6 @@
 const mineflayer = require('mineflayer')
 const pathfinder = require('mineflayer-pathfinder').pathfinder
-const gameplay = require('..').gameplay
+const gameplay = require('prismarine-gameplay').gameplay
 
 if (process.argv.length < 4 || process.argv.length > 6) {
   console.log('Usage : node miner.js <host> <port> [<name>] [<password>]')
@@ -24,14 +24,16 @@ bot.on('chat', (username, message) => {
   switch (true) {
     case /^collect [a-zA-Z_]+$/.test(message):
       bot.chat('Mining for ' + command[1])
-      bot.gameplay.collectBlock(
+      bot.gameplay.api.collectBlock(
         {
           blockType: command[1],
           distance: 16
         },
         err => {
-          if (err) console.log(err)
-          bot.chat('Operation complete.')
+          if (err) {
+            console.log(err)
+            bot.chat(err.message)
+          } else bot.chat('Operation complete.')
         }
       )
       break
