@@ -15,6 +15,8 @@
   - [2.5. Limitations](#25-limitations)
   - [2.5.1. Hard Dependencies](#251-hard-dependencies)
   - [2.5.2. Interrupting Tasks](#252-interrupting-tasks)
+- [3. Additional Thoughts](#3-additional-thoughts)
+  - [3.1 July 28th](#31-july-28th)
 
 ---
 
@@ -128,3 +130,60 @@ The implementation of this feature changes certain aspects of the design which w
 In some situations, it might be simply easier for the bot to cancel the entire task tree and execute the original task again. Given that the bot may have been anywhere in the task when it's canceled, it would be imperative for the bot to regain an understanding of it's new world state and adapt accordingly to the new situation. (I.e. if already in a mineshaft, don't build a new one.) However, doing this would determined solely by the original strategy.
 
 When executing tasks, it would also be important to send a message to all parent tasks recursively that an interruption had occurred while executing the child task so that proper state checking must be done to correct any inconsistencies.
+
+## 3. Additional Thoughts
+
+### 3.1 July 28th
+
+**Global Dependency Lists**
+
+After some more thought on the matter, some slight adjustments that could be made to increase flexibility and problem solving performance could be to create global dependency lists. By this, instead of each strategy individually having their own list of possible actions to preform, as suggested in **Heuristic Based Task Selection**, a set of global lists are used which specify sets of actions that strategies can add themselves to and any strategy can reference for execution. An example of this could be for a "createResource" dependency list. Then, all strategies which create a resource can add themselves to this list. Strategies which require a specific resource to be may can check this list and test all items in this list for the set of conditions (I.e. Can Create Obsidian) any strategies in the list that report they cannot preform that action are skipped. Remaining strategies are sorted by heuristic and the best option is executed.
+
+By using this approach, we no longer have to worry about cross-plugin compatibility, or making multiple copies of the same dependency list. It also makes it easy for a single strategy to report that they can fulfill multiple dependencies if needed.
+
+**Orderless Dependencies**
+
+In some situations, such as collecting all of the resources needed for a recipe, the order in which these dependencies are executed doesn't really matter. In this situation, it could be useful to make use of orderless dependencies. In this case, after all dependencies are selected for execution, these are sorted based on heuristic rather than executing in order. This would allow easy dependencies to be executed first, leading to a more natural-looking behavior when playing.
+
+Additional tweaks can be made as well. For example, if a single task was exceptionally difficult compared to the rest, the task might be executed first to get it out of the way. Usually when trying to make a diamond pickaxe, players don't first collect the wood to make sticks until after they already have the diamonds. This is all configurable by the user.
+
+**Optional Dependencies**
+
+Optional dependencies do not need to be executed in order for the strategy to run, however, if these dependencies are met, they may help the heuristics of the strategy in some situations. For example, if a lot of wood needs to be collected in the future, building a tree farm might initially slow things down, but ultimately increase performance in the long term. Building a beacon might be costly, but it might drastically help reduce the time it tasks to mine if collecting very large amounts of blocks.
+
+Optional dependencies may also include taking shortcuts if a given condition is met. Such as building a diamond pick to replace an iron one, but only if diamond is currently owned and spendable. Checking for this is as easy as checking through the dependency list and seeing what actions are available and which ones can be run. If no actions are available or all available strategies would increase the heuristic too much, these can be skipped. Heuristic would be calculated twice, once without the dependency and once with it. The smaller of the two values is selected.
+
+**Task Failure**
+
+When tasks fail, the path needs to be course-corrected. A task can fail when either a task fails to be executed for any reason (such as a pickaxe breaking or being attacked by a mob.) the task would alert its parent task that it failed. If that task was a dependency of of the parent task, the parent task would attempt to preform that next available task in that dependency list. If all available dependencies fail, the parent task would fail to meet any dependencies, and therefore would mark itself as failed, altering it's parent, continuing up the chain as needed.
+
+This allows the bot to course correct constantly once it runs into unexpected situations or dead ends in the solver.
+
+**Task Tree**
+
+Due to the shape in which the solver generates a path for the bot to preform, the map of actions to preform can be rendered as a tree. This tree is generated as the bot executes tasks in order to adapt to the world around it. This works by recursively subdividing tasks based on known information. This tree is executed from top to bottom, where a task in only considered finished once all child tasks are finished.
+
+Some items may be only conditionally executed, such as searching for the natural location of a block type if none are nearby. Another example could be executing task in a loop for mining all nearby blocks of a type.
+
+```
+Collect Resource [7 Diamonds]
+   Get Sources [Diamond]
+      Get Blocks That Drop [Diamond]
+      Get Smelts That Drop [Diamond]
+      Get Recipes That Drop [Diamond]
+      Get Mobs That Drop [Diamond]
+   Find Blocks Nearby [Diamond Ore, Diamond Block]
+   * Get Natural Location [Diamond Ore]
+   * Get Natural Location [Diamond Block]
+   ...
+```
+
+When looking ahead in the tree, only direct child tasks of the given task can be observed. So the tree will constantly add more nodes as it continues executing. In addition, mode nodes can be added if depending on how child tasks are executed. Finding blocks to mine would often add tasks to mine those blocks directly, while returning an empty array will often trigger tasks for finding the natural location of the block type to look for it. In addition, new tasks can be added if the given task fails and the bot needs to reroute.
+
+**Planning Ahead Using Probability**
+
+In some situations, in can be useful to try an estimate actions which would come next. This would be extremely useful for things such as estimating how many pickaxes to bring into a mine based on the probability of finding diamonds while mining. The AI could also collect resources it doesn't need, while they're readily available, in order to avoid having come back to collect them later when they are needed.
+
+This could be done easily by having strategies run by assuming the most likely state of the world at each position in the tree, the AI would be able to estimate the path that will be taken ahead of time up to a certain depth away from the bot. In situations where the actual result doesn't match the estimated result, the estimated tree would be recalculated and updated accordingly. In times where tasks are using very little CPU to preform a task, addition trees could be calculated by using the second or third mostly likely events to occur at each step on the path. This would avoid needing to recalculate the entire tree when a slightly less likely path-break occurs.
+
+Through the use of this approach, the entire heuristic cost of the tree can be estimated, meaning that decisions can be made above more easily by knowing how it'll most likely effect the heuristic cost of the tree in the long term. More optimal routing paths can be generated using this approach.
