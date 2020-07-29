@@ -33,6 +33,7 @@
     "require-self": "^0.2.3"
   },
   "dependencies": {
+    "minecraft-data": "^2.63.0",
     "mineflayer": "^2.25.0",
     "mineflayer-pathfinder": "^1.0.9",
     "prismarine-block": "^1.7.1",

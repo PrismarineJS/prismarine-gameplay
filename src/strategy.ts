@@ -45,6 +45,13 @@ export class Solver
 {
     private strategies: StrategyBase[] = [];
 
+    readonly bot: Bot;
+
+    constructor(bot: Bot)
+    {
+        this.bot = bot;
+    }
+
     register(strategy: StrategyBase): void
     {
         if (this.strategies.indexOf(strategy) > -1)
@@ -184,9 +191,4 @@ export abstract class StrategyExecutionInstance
      * @param cb - The callback to execute when this instance has finished executing.
      */
     abstract run(dependency: Dependency, cb: Callback): void;
-
-    /**
-     * Requests this task to stop executing at the next available opportunity.
-     */
-    abstract exit(): void;
 }
