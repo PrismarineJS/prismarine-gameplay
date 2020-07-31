@@ -1,6 +1,7 @@
 const mineflayer = require('mineflayer')
 const pathfinder = require('mineflayer-pathfinder').pathfinder
 const gameplay = require('prismarine-gameplay').gameplay
+const mineflayerViewer = require('prismarine-viewer').mineflayer
 
 if (process.argv.length < 4 || process.argv.length > 6) {
   console.log('Usage : node miner.js <host> <port> [<name>] [<password>]')
@@ -16,6 +17,19 @@ const bot = mineflayer.createBot({
 
 bot.loadPlugin(pathfinder)
 bot.loadPlugin(gameplay)
+
+bot.once('spawn', () => {
+  mineflayerViewer(bot, { port: 3000 })
+})
+
+bot.on('login', () => {
+  const r = readline.start('> ')
+  r.context.bot = bot
+
+  r.on('exit', () => {
+    bot.end()
+  })
+})
 
 bot.on('chat', (username, message) => {
   if (username === bot.username) return
@@ -44,3 +58,18 @@ bot.on('chat', (username, message) => {
       break
   }
 })
+
+const readline = require('readline')
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+})
+
+function consoleInput () {
+  rl.question('> ', function (message) {
+    bot.chat(message)
+    consoleInput()
+  })
+}
+
+consoleInput()

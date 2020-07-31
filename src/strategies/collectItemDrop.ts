@@ -8,7 +8,7 @@ const GoalFollow = require('mineflayer-pathfinder').goals;
 
 function getNearbyItem(bot: Bot, itemId: number): Entity | undefined
 {
-    let closestEntity: Entity = undefined;
+    let closestEntity: Entity | undefined = undefined;
     let distance = -1;
 
     for (let entityName of Object.keys(bot.entities))
