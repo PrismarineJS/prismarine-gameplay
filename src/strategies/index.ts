@@ -1,2 +1,3 @@
-export * from './collectItemDrop';
-export * from './moveToTarget';
+export * from './stratCollectItemDrop';
+export * from './stratMoveToTarget';
+export * from './stratWaitForItemDrop';

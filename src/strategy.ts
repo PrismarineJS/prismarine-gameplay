@@ -3,7 +3,7 @@ import { Bot } from "mineflayer";
 /**
  * The callback function for a strategy.
  */
-export type Callback = (err?: Error, results?: any) => void;
+export type Callback = (err?: Error) => void;
 
 /**
  * A configurable function which can be executed to preform a task.

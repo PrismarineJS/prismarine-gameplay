@@ -22,9 +22,9 @@ bot.once('spawn', () => {
   mineflayerViewer(bot, { firstPerson: true, port: 3000 })
 })
 
-bot.on('chat', (username, message) => {
-  console.log(`${username}: ${message}`)
+bot.on('message', message => console.log(message))
 
+bot.on('chat', (username, message) => {
   const command = message.split(' ')
   switch (true) {
     case /^moveto -?[0-9]+ -?[0-9]+$/.test(message):

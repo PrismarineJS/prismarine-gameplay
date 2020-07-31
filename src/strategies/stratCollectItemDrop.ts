@@ -33,7 +33,7 @@ function getNearbyItem(bot: Bot, itemId: number): Entity | undefined
     return closestEntity;
 }
 
-export class CollectItemDrop extends StrategyBase
+export class StratCollectItemDrop extends StrategyBase
 {
     readonly name: string = 'collectItemDrop';
     readonly bot: Bot;

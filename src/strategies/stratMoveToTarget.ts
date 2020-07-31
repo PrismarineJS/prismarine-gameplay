@@ -14,7 +14,7 @@ interface PositionHolder
     range?: number;
 }
 
-export class MoveToTarget extends StrategyBase
+export class StratMoveToTarget extends StrategyBase
 {
     readonly name: string = 'moveToTarget';
     readonly bot: Bot;
