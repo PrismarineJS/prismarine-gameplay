@@ -4,7 +4,7 @@ import { Bot } from 'mineflayer';
 import { Entity } from 'prismarine-entity';
 import { Movements, Result } from 'mineflayer-pathfinder';
 
-const GoalFollow = require('mineflayer-pathfinder').goals;
+const { GoalFollow } = require('mineflayer-pathfinder').goals;
 
 function getNearbyItem(bot: Bot, itemId: number): Entity | undefined
 {
