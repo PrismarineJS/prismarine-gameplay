@@ -1,10 +1,18 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
 import { Bot } from 'mineflayer';
 import { Movements, Result, Move } from 'mineflayer-pathfinder';
-import { MoveTo, MoveTarget } from '../dependencies/moveTo';
+import { MoveTo } from '../dependencies/moveTo';
 import { Vec3 } from 'vec3';
 
-const { Goal } = require('mineflayer-pathfinder').goals;
+const { Goal, GoalNear } = require('mineflayer-pathfinder').goals;
+
+interface PositionHolder
+{
+    x?: number;
+    y?: number;
+    z?: number;
+    range?: number;
+}
 
 export class MoveToTarget extends StrategyBase
 {
@@ -27,6 +35,7 @@ export class MoveToTarget extends StrategyBase
         switch (dependency.name)
         {
             case 'moveTo':
+            case 'moveToInteract':
                 const moveTo = <MoveTo>dependency;
                 return this.calculateHeuristicForMoveTarget(moveTo.moveTarget);
 
@@ -35,7 +44,7 @@ export class MoveToTarget extends StrategyBase
         }
     }
 
-    private calculateHeuristicForMoveTarget(moveTarget: MoveTarget): number
+    private calculateHeuristicForMoveTarget(moveTarget: PositionHolder): number
     {
         const x = moveTarget.x !== undefined ? moveTarget.x : this.bot.entity.position.x;
         const y = moveTarget.y !== undefined ? moveTarget.y : this.bot.entity.position.y;
@@ -62,17 +71,29 @@ export class MoveToTargetInstance implements StrategyExecutionInstance
     {
         try
         {
-            if (dependency.name !== 'moveTo')
-                throw new Error("Unsupported dependency!");
+            let goal = null;
+            const targetPos: PositionHolder = (<MoveTo>dependency).moveTarget;
 
-            const moveTo = <MoveTo>dependency;
+            switch (dependency.name)
+            {
+                case 'moveTo':
+                    goal = new MoveTargetGoal(targetPos);
+                    break;
+
+                case 'moveToInteract':
+                    goal = new GoalNear(targetPos.x, targetPos.y, targetPos.z, 1); // TODO Replace with GoalInteract
+                    break;
+
+                default:
+                    throw new Error("Unsupported dependency!");
+            }
 
             // @ts-ignore
             if (this.bot.gameplay.debugText)
             {
-                const x = moveTo.moveTarget.x === undefined ? '-' : moveTo.moveTarget.x;
-                const y = moveTo.moveTarget.y === undefined ? '-' : moveTo.moveTarget.y;
-                const z = moveTo.moveTarget.z === undefined ? '-' : moveTo.moveTarget.z;
+                const x = targetPos.x === undefined ? '-' : targetPos.x;
+                const y = targetPos.y === undefined ? '-' : targetPos.y;
+                const z = targetPos.z === undefined ? '-' : targetPos.z;
                 console.log(`Moving from ${this.bot.entity.position} to (${x}, ${y}, ${z})`);
             }
 
@@ -82,8 +103,6 @@ export class MoveToTargetInstance implements StrategyExecutionInstance
             const mcData = require('minecraft-data')(this.bot.version);
             const defaultMove = new Movements(this.bot, mcData);
             pathfinder.setMovements(defaultMove);
-
-            const goal = new MoveTargetGoal(moveTo.moveTarget);
             pathfinder.setGoal(goal);
 
             const bot = this.bot;
@@ -135,9 +154,9 @@ function distanceXZ(dx: number, dz: number): number
 
 class MoveTargetGoal extends Goal
 {
-    readonly moveTarget: MoveTarget;
+    readonly moveTarget: PositionHolder;
 
-    constructor(moveTarget: MoveTarget)
+    constructor(moveTarget: PositionHolder)
     {
         super();
 
