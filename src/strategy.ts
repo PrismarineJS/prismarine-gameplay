@@ -137,19 +137,26 @@ export class DependencyResolution
             cb(err)
         }
     }
+
+    hasNext(): boolean
+    {
+        return this.dependencyHandlers.length > 0;
+    }
 }
 
-/**
- * A strategy implementation which can used to construct task lists within the solver.
- */
-export abstract class StrategyBase
+type Executor = new (parent: StrategyBase, solver: Solver) => StrategyExecutionInstance;
+
+export abstract class SolverHandler
 {
-    private readonly solver: Solver;
+    protected readonly parent?: StrategyBase;
+    protected readonly solver: Solver;
 
-    abstract name: string;
-
-    constructor(solver: Solver)
+    constructor(solver: Solver, parent?: StrategyBase)
     {
+        if (!parent && this instanceof StrategyBase)
+            parent = this;
+
+        this.parent = parent;
         this.solver = solver;
     }
 
@@ -163,7 +170,73 @@ export abstract class StrategyBase
      */
     protected findSolutionsFor(dependency: Dependency): DependencyResolution
     {
-        return this.solver.findSolutionsFor(dependency, this);
+        return this.solver.findSolutionsFor(dependency, this.parent);
+    }
+
+    /**
+     * Finds all solutions for a dependency and executes them in order or lowest to highest
+     * heuristic until the entire list is exhausted or no strategies are left.
+     * 
+     * Throws an error is no strategies remain.
+     * 
+     * @param dependency - The dependency to solve to.
+     * @param cb - The callback.
+     */
+    protected solveDependency(dependency: Dependency, cb: Callback): void
+    {
+        const resolution = this.findSolutionsFor(dependency);
+
+        const trySolve = () =>
+        {
+            if (!resolution.hasNext())
+            {
+                cb(new Error("No solutions available!"));
+                return;
+            }
+
+            resolution.runNext(err =>
+            {
+                if (err) trySolve();
+                else cb();
+            });
+        }
+
+        trySolve();
+    }
+
+    /**
+     * Estimates the heuristic value of the given dependency to be resolved.
+     * 
+     * @param dependency - The dependency.
+     * 
+     * @returns The heuristic estimate, or -1 if it could not be resolved.
+     */
+    protected quickHeuristicFor(dependency: Dependency): number
+    {
+        const resolution = this.findSolutionsFor(dependency);
+
+        if (!resolution.hasNext())
+            return -1;
+
+        return resolution.dependencyHandlers[0][1];
+    }
+}
+
+/**
+ * A strategy implementation which can used to construct task lists within the solver.
+ */
+export abstract class StrategyBase extends SolverHandler
+{
+    private readonly executor: Executor;
+    readonly bot: Bot;
+
+    abstract name: string;
+
+    constructor(solver: Solver, executor: Executor)
+    {
+        super(solver);
+        this.executor = executor;
+        this.bot = solver.bot;
     }
 
     /**
@@ -171,7 +244,10 @@ export abstract class StrategyBase
      * 
      * @returns The execution instance.
      */
-    abstract createExecutionInstance(): StrategyExecutionInstance;
+    public createExecutionInstance(): StrategyExecutionInstance
+    {
+        return new this.executor(this, this.solver);
+    }
 
     /**
      * Estimates the heuristic return value for the given dependency input. This is
@@ -186,8 +262,16 @@ export abstract class StrategyBase
     abstract estimateHeuristic(dependency: Dependency): number;
 }
 
-export abstract class StrategyExecutionInstance
+export abstract class StrategyExecutionInstance extends SolverHandler
 {
+    readonly bot: Bot;
+
+    constructor(parent: StrategyBase, solver: Solver)
+    {
+        super(solver, parent);
+        this.bot = parent.bot;
+    }
+
     /**
      * Executes this strategy.
      *

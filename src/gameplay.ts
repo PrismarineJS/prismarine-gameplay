@@ -41,30 +41,21 @@ export class Gameplay
     {
         // TODO Don't run strategies while executing.
 
-        const finish: Callback = (err, results) =>
+        const finish: Callback = err =>
         {
-            if (err)
+            if (this.debugText)
             {
-                if (this.debugText)
+                if (err)
                 {
                     console.log(`Task '${dependency.name}' finished with errors!`);
                     console.log(err);
                 }
-            }
-            else
-            {
-                if (this.debugText)
+                else
                     console.log(`Task '${dependency.name}' complete.`);
-
-                if (results && this.debugText)
-                {
-                    console.log("Results:");
-                    console.log(results);
-                }
             }
 
             if (cb)
-                cb(err, results);
+                cb(err);
         };
 
         if (this.debugText)

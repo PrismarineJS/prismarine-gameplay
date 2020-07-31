@@ -27,7 +27,6 @@ export interface MoveTarget
 export class MoveTo implements Dependency
 {
     readonly name: string = 'moveTo';
-
     readonly moveTarget: MoveTarget;
 
     constructor(moveTarget: MoveTarget)

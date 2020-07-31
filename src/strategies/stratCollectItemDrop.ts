@@ -36,17 +36,10 @@ function getNearbyItem(bot: Bot, itemId: number): Entity | undefined
 export class StratCollectItemDrop extends StrategyBase
 {
     readonly name: string = 'collectItemDrop';
-    readonly bot: Bot;
 
     constructor(solver: Solver)
     {
-        super(solver);
-        this.bot = solver.bot;
-    }
-
-    createExecutionInstance(): StrategyExecutionInstance
-    {
-        return new CollectItemDropInstance(this.bot);
+        super(solver, CollectItemDropInstance);
     }
 
     estimateHeuristic(dependency: Dependency): number
@@ -76,15 +69,8 @@ export class StratCollectItemDrop extends StrategyBase
     }
 }
 
-export class CollectItemDropInstance implements StrategyExecutionInstance
+class CollectItemDropInstance extends StrategyExecutionInstance
 {
-    private readonly bot: Bot;
-
-    constructor(bot: Bot)
-    {
-        this.bot = bot;
-    }
-
     run(dependency: Dependency, cb: Callback): void
     {
         try

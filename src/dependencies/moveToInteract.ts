@@ -21,7 +21,6 @@ export interface MoveInteractTarget
 export class MoveToInteract implements Dependency
 {
     readonly name: string = 'moveToInteract';
-
     readonly moveTarget: MoveInteractTarget;
 
     constructor(moveTarget: MoveInteractTarget)

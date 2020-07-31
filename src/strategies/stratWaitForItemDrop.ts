@@ -1,22 +1,14 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
-import { Bot } from 'mineflayer';
 import { Entity } from 'prismarine-entity';
 import { WaitForItemDrop } from '../dependencies/waitForItemDrop';
 
 export class StratWaitForItemDrop extends StrategyBase
 {
     readonly name: string = 'waitForItemDrop';
-    readonly bot: Bot;
 
     constructor(solver: Solver)
     {
-        super(solver);
-        this.bot = solver.bot;
-    }
-
-    createExecutionInstance(): StrategyExecutionInstance
-    {
-        return new WaitForItemDropInstance(this.bot);
+        super(solver, WaitForItemDropInstance);
     }
 
     estimateHeuristic(dependency: Dependency): number
@@ -32,15 +24,8 @@ export class StratWaitForItemDrop extends StrategyBase
     }
 }
 
-export class WaitForItemDropInstance implements StrategyExecutionInstance
+class WaitForItemDropInstance extends StrategyExecutionInstance
 {
-    private readonly bot: Bot;
-
-    constructor(bot: Bot)
-    {
-        this.bot = bot;
-    }
-
     run(dependency: Dependency, cb: Callback): void
     {
         try

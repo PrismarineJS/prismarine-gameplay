@@ -1,5 +1,4 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
-import { Bot } from 'mineflayer';
 import { Movements, Result, Move } from 'mineflayer-pathfinder';
 import { MoveTo } from '../dependencies/moveTo';
 import { Vec3 } from 'vec3';
@@ -17,17 +16,10 @@ interface PositionHolder
 export class StratMoveToTarget extends StrategyBase
 {
     readonly name: string = 'moveToTarget';
-    readonly bot: Bot;
 
     constructor(solver: Solver)
     {
-        super(solver);
-        this.bot = solver.bot;
-    }
-
-    createExecutionInstance(): StrategyExecutionInstance
-    {
-        return new MoveToTargetInstance(this.bot);
+        super(solver, MoveToTargetInstance);
     }
 
     estimateHeuristic(dependency: Dependency): number
@@ -58,15 +50,8 @@ export class StratMoveToTarget extends StrategyBase
     }
 }
 
-export class MoveToTargetInstance implements StrategyExecutionInstance
+class MoveToTargetInstance extends StrategyExecutionInstance
 {
-    private readonly bot: Bot;
-
-    constructor(bot: Bot)
-    {
-        this.bot = bot;
-    }
-
     run(dependency: Dependency, cb: Callback): void
     {
         try
