@@ -17,6 +17,8 @@ export class Gameplay
 {
     readonly solver: Solver;
 
+    debugText: boolean = true;
+
     /**
      * Creates a new gameplay object
      *
@@ -36,32 +38,40 @@ export class Gameplay
 
     solveFor(dependency: Dependency, cb?: Callback): void
     {
-        // TODO Add option to disable console logging.
         // TODO Don't run strategies while executing.
 
         const finish: Callback = (err, results) =>
         {
             if (err)
             {
-                console.log(`Task '${dependency.name}' finished with errors!`);
-                console.log(err);
-                return;
+                if (this.debugText)
+                {
+                    console.log(`Task '${dependency.name}' finished with errors!`);
+                    console.log(err);
+                }
             }
-
-            console.log(`Task '${dependency.name}' complete.`);
-            if (results)
+            else
             {
-                console.log("Results:");
-                console.log(results);
+                if (this.debugText)
+                    console.log(`Task '${dependency.name}' complete.`);
+
+                if (results && this.debugText)
+                {
+                    console.log("Results:");
+                    console.log(results);
+                }
             }
 
             if (cb)
                 cb(err, results);
         };
 
-        console.log(`Executing task '${dependency.name}'`);
-        console.log("Options:");
-        console.log(dependency);
+        if (this.debugText)
+        {
+            console.log(`Executing task '${dependency.name}'`);
+            console.log("Options:");
+            console.log(dependency);
+        }
 
         this.solver.runDependency(dependency, finish);
     }

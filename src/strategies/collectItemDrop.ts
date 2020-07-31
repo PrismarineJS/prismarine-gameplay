@@ -35,6 +35,7 @@ function getNearbyItem(bot: Bot, itemId: number): Entity | undefined
 
 export class CollectItemDrop extends StrategyBase
 {
+    readonly name: string = 'collectItemDrop';
     readonly bot: Bot;
 
     constructor(solver: Solver)
@@ -136,6 +137,8 @@ export class CollectItemDropInstance implements StrategyExecutionInstance
 
                 // @ts-ignore
                 bot.removeListener('path_update', pathUpdate);
+
+                pathfinder.setGoal(null);
 
                 if (success) cb();
                 else cb(new Error("Failed to collect item!"));

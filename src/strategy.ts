@@ -69,7 +69,7 @@ export class Solver
      * 
      * @returns A list of tuples containing each available strategy and its heuristic value.
      */
-    findSolutionsFor(dependency: Dependency, caller?: StrategyBase): DependencyResolution
+    findSolutionsFor(dependency: Dependency, caller?: StrategyBase, depth: number = 0): DependencyResolution
     {
         const solutions: [StrategyBase, number][] = [];
 
@@ -87,7 +87,7 @@ export class Solver
 
         solutions.sort((a, b) => a[1] - b[1]);
 
-        return new DependencyResolution(dependency, solutions);
+        return new DependencyResolution(dependency, solutions, depth);
     }
 
     /**
@@ -111,11 +111,13 @@ export class DependencyResolution
 {
     readonly dependency: Dependency;
     readonly dependencyHandlers: [StrategyBase, number][];
+    readonly depth: number;
 
-    constructor(dependency: Dependency, dependencyHandlers: [StrategyBase, number][])
+    constructor(dependency: Dependency, dependencyHandlers: [StrategyBase, number][], depth: number)
     {
         this.dependency = dependency;
         this.dependencyHandlers = dependencyHandlers;
+        this.depth = depth;
     }
 
     runNext(cb: Callback): void
@@ -127,6 +129,7 @@ export class DependencyResolution
             if (!dep)
                 throw new Error("No dependencies remaining!");
 
+            console.log(`${'  '.repeat(this.depth)}Executing '${dep[0].name}'`);
             dep[0].createExecutionInstance().run(this.dependency, cb);
         }
         catch (err)
@@ -142,6 +145,8 @@ export class DependencyResolution
 export abstract class StrategyBase
 {
     private readonly solver: Solver;
+
+    abstract name: string;
 
     constructor(solver: Solver)
     {

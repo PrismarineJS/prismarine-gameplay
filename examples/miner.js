@@ -19,13 +19,15 @@ bot.loadPlugin(pathfinder)
 bot.loadPlugin(gameplay)
 
 bot.once('spawn', () => {
-  mineflayerViewer(bot, { port: 3000 })
+  mineflayerViewer(bot, { firstPerson: true, port: 3000 })
 })
 
 bot.on('chat', (username, message) => {
+  console.log(`${username}: ${message}`)
+
   const command = message.split(' ')
   switch (true) {
-    case /^moveto [0-9]+ [0-9]+$/.test(message):
+    case /^moveto -?[0-9]+ -?[0-9]+$/.test(message):
       bot.gameplay.solveFor(
         new MoveTo({
           x: parseInt(command[1]),
@@ -34,7 +36,7 @@ bot.on('chat', (username, message) => {
       )
       break
 
-    case /^moveto [0-9]+ [0-9]+ [0-9]+$/.test(message):
+    case /^moveto -?[0-9]+ -?[0-9]+ -?[0-9]+$/.test(message):
       bot.gameplay.solveFor(
         new MoveTo({
           x: parseInt(command[1]),
