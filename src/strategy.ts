@@ -146,7 +146,6 @@ export abstract class StrategyBase
     constructor(solver: Solver)
     {
         this.solver = solver;
-        solver.register(this);
     }
 
     /**

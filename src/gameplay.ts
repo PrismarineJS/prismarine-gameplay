@@ -1,23 +1,13 @@
-import { Strategy } from "./strategy"
+import { Solver, Dependency, StrategyBase } from "./strategy"
 import { Bot } from "mineflayer"
 import { Callback } from "./strategy";
+import { MoveToTarget, CollectItemDrop } from "./strategies";
 
-const { CollectItem } = require('./strats/collectItem');
-const { CollectBlock } = require('./strats/collectBlock');
-const { WaitForTime } = require('./strats/waitForTime');
-const { WaitForItemDrop } = require('./strats/waitForItemDrop');
 
-function loadDefaultStrategies(gameplay: Gameplay)
+function loadDefaultStrategies(gameplay: Gameplay): void
 {
-    gameplay.addStrategy(new CollectItem(gameplay.bot));
-    gameplay.addStrategy(new CollectBlock(gameplay.bot));
-    gameplay.addStrategy(new WaitForTime(gameplay.bot));
-    gameplay.addStrategy(new WaitForItemDrop(gameplay.bot));
-}
-
-export interface GameplayAPI
-{
-    [strategyAPI: string]: (options: any, cb: Callback) => void;
+    gameplay.loadStrategy(new CollectItemDrop(gameplay.solver));
+    gameplay.loadStrategy(new MoveToTarget(gameplay.solver));
 }
 
 /**
@@ -25,64 +15,63 @@ export interface GameplayAPI
  */
 export class Gameplay
 {
-    private readonly strategies: Strategy[] = [];
-    private activeStrategy: (Strategy | null) = null;
-
-    readonly bot: Bot;
-    readonly api: GameplayAPI = {};
-
-    // [strategyAPI: string]: (options: any, cb: Callback) => void;
+    readonly solver: Solver;
 
     /**
      * Creates a new gameplay object
      *
-     * @param {Bot} bot - The bot this gameplay container is acting upon
+     * @param bot - The bot this gameplay container is acting upon
+     * @param loadDefault - Whether or not to load all default strategies.
+     * Defaults to true.
      */
     constructor(bot: Bot, loadDefault: boolean = true)
     {
-        this.bot = bot;
+        // TODO Allow individual strategies to be turned on or off.
+
+        this.solver = new Solver(bot);
 
         if (loadDefault)
             loadDefaultStrategies(this);
     }
 
-    /**
-     * Adds a new strategy to this gameplay container.
-     *
-     * @param {Strategy} strategy - The strategy to add.
-     */
-    addStrategy(strategy: Strategy): void
+    solveFor(dependency: Dependency, cb?: Callback): void
     {
-        this.strategies.push(strategy);
+        // TODO Add option to disable console logging.
+        // TODO Don't run strategies while executing.
 
-        this.api[strategy.name] = (options: any, cb: Callback) =>
+        const finish: Callback = (err, results) =>
         {
-            if (this.activeStrategy !== null)
+            if (err)
             {
-                cb(new Error(`Strategy ${this.activeStrategy.name} is still active!`));
+                console.log(`Task '${dependency.name}' finished with errors!`);
+                console.log(err);
                 return;
             }
 
-            try
+            console.log(`Task '${dependency.name}' complete.`);
+            if (results)
             {
-                this.activeStrategy = strategy;
-                strategy.run(options, (err, returns) =>
-                {
-                    this.activeStrategy = null;
-                    cb(err, returns);
-                });
+                console.log("Results:");
+                console.log(results);
             }
-            catch (err)
-            {
-                this.activeStrategy = null;
-                cb(err);
-            }
-        }
+
+            if (cb)
+                cb(err, results);
+        };
+
+        console.log(`Executing task '${dependency.name}'`);
+        console.log("Options:");
+        console.log(dependency);
+
+        this.solver.runDependency(dependency, finish);
     }
 
-    stopAll(): void
+    loadStrategy(strategy: StrategyBase): void
     {
-        if (this.activeStrategy !== null)
-            this.activeStrategy.exit();
+        this.solver.register(strategy);
     }
+
+    // TODO Add option to unload strategies.
+    // TODO Don't load/unload strategies while executing.
+    // TODO Add option to stop current task.
 }

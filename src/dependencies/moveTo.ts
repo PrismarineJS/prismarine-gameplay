@@ -1,5 +1,4 @@
 import { Dependency } from "../strategy";
-import { Bot } from "mineflayer";
 
 export interface MoveTarget
 {
@@ -12,13 +11,11 @@ export interface MoveTarget
 export class MoveTo implements Dependency
 {
     readonly name: string = 'moveTo';
-    readonly bot: Bot;
 
     readonly moveTarget: MoveTarget;
 
-    constructor(bot: Bot, moveTarget: MoveTarget)
+    constructor(moveTarget: MoveTarget)
     {
-        this.bot = bot;
         this.moveTarget = moveTarget;
     }
 }

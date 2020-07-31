@@ -65,7 +65,7 @@ export class MoveToTargetInstance implements StrategyExecutionInstance
             const moveTo = <MoveTo>dependency;
 
             // @ts-ignore
-            const pathfinder: Pathfinder = bot.pathfinder;
+            const pathfinder: Pathfinder = this.bot.pathfinder;
 
             const mcData = require('minecraft-data')(this.bot.version);
             const defaultMove = new Movements(this.bot, mcData);

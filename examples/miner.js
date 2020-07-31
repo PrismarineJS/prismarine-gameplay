@@ -1,7 +1,7 @@
 const mineflayer = require('mineflayer')
 const pathfinder = require('mineflayer-pathfinder').pathfinder
-const gameplay = require('prismarine-gameplay').gameplay
 const mineflayerViewer = require('prismarine-viewer').mineflayer
+const { gameplay, MoveTo } = require('prismarine-gameplay')
 
 if (process.argv.length < 4 || process.argv.length > 6) {
   console.log('Usage : node miner.js <host> <port> [<name>] [<password>]')
@@ -22,34 +22,30 @@ bot.once('spawn', () => {
   mineflayerViewer(bot, { port: 3000 })
 })
 
-bot.on('login', () => {
-  const r = readline.start('> ')
-  r.context.bot = bot
-
-  r.on('exit', () => {
-    bot.end()
-  })
-})
-
 bot.on('chat', (username, message) => {
-  if (username === bot.username) return
-
   const command = message.split(' ')
   switch (true) {
+    case /^moveto [0-9]+ [0-9]+$/.test(message):
+      bot.gameplay.solveFor(
+        new MoveTo({
+          x: parseInt(command[1]),
+          z: parseInt(command[2])
+        })
+      )
+      break
+
+    case /^moveto [0-9]+ [0-9]+ [0-9]+$/.test(message):
+      bot.gameplay.solveFor(
+        new MoveTo({
+          x: parseInt(command[1]),
+          y: parseInt(command[2]),
+          z: parseInt(command[3])
+        })
+      )
+      break
+
     case /^collect [a-zA-Z_]+$/.test(message):
       bot.chat('Mining for ' + command[1])
-      bot.gameplay.api.collectBlock(
-        {
-          blockType: command[1],
-          distance: 16
-        },
-        err => {
-          if (err) {
-            console.log(err)
-            bot.chat(err.message)
-          } else bot.chat('Operation complete.')
-        }
-      )
       break
 
     case /^stop$/.test(message):
