@@ -37,8 +37,10 @@ export class MoveToTarget extends StrategyBase
 
     private calculateHeuristicForMoveTarget(moveTarget: MoveTarget): number
     {
+        const x = moveTarget.x !== undefined ? moveTarget.x : this.bot.entity.position.x;
         const y = moveTarget.y !== undefined ? moveTarget.y : this.bot.entity.position.y;
-        const pos = new Vec3(moveTarget.x, y, moveTarget.z);
+        const z = moveTarget.z !== undefined ? moveTarget.z : this.bot.entity.position.z;
+        const pos = new Vec3(x, y, z);
 
         let distance = pos.distanceTo(this.bot.entity.position);
         distance *= 1.2; // Add 20% for pathfinding around stuff
@@ -68,13 +70,10 @@ export class MoveToTargetInstance implements StrategyExecutionInstance
             // @ts-ignore
             if (this.bot.gameplay.debugText)
             {
-                let moveTargetText: string;
-                if (moveTo.moveTarget.y === undefined)
-                    moveTargetText = `(${moveTo.moveTarget.x, moveTo.moveTarget.z})`;
-                else
-                    moveTargetText = `(${moveTo.moveTarget.x, moveTo.moveTarget.y, moveTo.moveTarget.z})`;
-
-                console.log(`Moving from ${this.bot.entity.position} to ${moveTargetText}`);
+                const x = moveTo.moveTarget.x === undefined ? '-' : moveTo.moveTarget.x;
+                const y = moveTo.moveTarget.y === undefined ? '-' : moveTo.moveTarget.y;
+                const z = moveTo.moveTarget.z === undefined ? '-' : moveTo.moveTarget.z;
+                console.log(`Moving from ${this.bot.entity.position} to (${x}, ${y}, ${z})`);
             }
 
             // @ts-ignore
@@ -143,33 +142,45 @@ class MoveTargetGoal extends Goal
         super();
 
         this.moveTarget = {
-            x: Math.floor(moveTarget.x),
+            x: moveTarget.x != undefined ? Math.floor(moveTarget.x) : undefined,
             y: moveTarget.y != undefined ? Math.floor(moveTarget.y) : undefined,
-            z: Math.floor(moveTarget.z),
+            z: moveTarget.z != undefined ? Math.floor(moveTarget.z) : undefined,
             range: moveTarget.range,
         };
     }
 
     heuristic(node: Move): number
     {
-        const dx = this.moveTarget.x - node.x;
-        const dz = this.moveTarget.z - node.z;
+        let dx = 0;
         let dy = 0;
+        let dz = 0;
+
+        if (this.moveTarget.x !== undefined)
+            dx = Math.abs(this.moveTarget.x - node.x);
 
         if (this.moveTarget.y !== undefined)
             dy = Math.abs(this.moveTarget.y - node.y);
+
+        if (this.moveTarget.z !== undefined)
+            dz = Math.abs(this.moveTarget.z - node.z);
 
         return distanceXZ(dx, dz) + Math.abs(dy);
     }
 
     isEnd(node: Move): boolean
     {
-        const dx = this.moveTarget.x - node.x;
-        const dz = this.moveTarget.z - node.z;
+        let dx = 0;
         let dy = 0;
+        let dz = 0;
+
+        if (this.moveTarget.x !== undefined)
+            dx = Math.abs(this.moveTarget.x - node.x);
 
         if (this.moveTarget.y !== undefined)
             dy = Math.abs(this.moveTarget.y - node.y);
+
+        if (this.moveTarget.z !== undefined)
+            dz = Math.abs(this.moveTarget.z - node.z);
 
         const range = this.moveTarget.range !== undefined ? this.moveTarget.range : 0.5;
         return Math.sqrt(dx * dx + dy * dy + dz * dz) <= range;
