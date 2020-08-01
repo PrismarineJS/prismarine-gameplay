@@ -66,7 +66,7 @@ export class Gameplay
             console.log(dependency);
         }
 
-        this.solver.runDependency(dependency, finish);
+        this.solver.runDependency(dependency, finish, 0);
     }
 
     loadStrategy(strategy: StrategyBase): void

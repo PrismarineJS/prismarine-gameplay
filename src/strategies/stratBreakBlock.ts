@@ -14,23 +14,23 @@ export class StratBreakBlock extends StrategyBase
         super(solver, BreakBlockInstance);
     }
 
-    estimateHeuristic(dependency: Dependency): number
+    estimateHeuristic(dependency: Dependency, depth: number): number
     {
         switch (dependency.name)
         {
             case 'breakBlock':
-                return this.estimateTime(<BreakBlock>dependency);
+                return this.estimateTime(<BreakBlock>dependency, depth);
 
             default:
                 return -1;
         }
     }
 
-    private estimateTime(breakBlock: BreakBlock): number
+    private estimateTime(breakBlock: BreakBlock, depth: number): number
     {
         const moveHeuristic = this.quickHeuristicFor(new MoveToInteract({
             position: breakBlock.inputs.position
-        }));
+        }), depth);
 
         if (moveHeuristic < 0)
             return -1;

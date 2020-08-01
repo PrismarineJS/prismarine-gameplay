@@ -12,22 +12,22 @@ export class StratCollectBlock extends StrategyBase
         super(solver, CollectBlockInstance);
     }
 
-    estimateHeuristic(dependency: Dependency): number
+    estimateHeuristic(dependency: Dependency, depth: number): number
     {
         switch (dependency.name)
         {
             case 'collectBlock':
-                return this.collectBlockHeuristic((<CollectBlock>dependency).inputs.position);
+                return this.collectBlockHeuristic((<CollectBlock>dependency).inputs.position, depth);
 
             case 'obtainItem':
-                return this.obtainItemHeuristic((<ObtainItem>dependency).inputs.itemType);
+                return this.obtainItemHeuristic((<ObtainItem>dependency).inputs.itemType, depth);
 
             default:
                 return -1;
         }
     }
 
-    private obtainItemHeuristic(itemType: number): number
+    private obtainItemHeuristic(itemType: number, depth: number): number
     {
         const block = this.bot.findBlock({
             matching: b => b.type === itemType,
@@ -41,11 +41,11 @@ export class StratCollectBlock extends StrategyBase
         distance *= 1.2; // 20% for pathfinding around stuff
         distance *= 10; // Estimates 10 ticks per block movement
 
-        const collectH = this.collectBlockHeuristic(block.position);
+        const collectH = this.collectBlockHeuristic(block.position, depth);
         return this.addH(distance, collectH);
     }
 
-    private collectBlockHeuristic(position: Vec3): number
+    private collectBlockHeuristic(position: Vec3, depth: number): number
     {
         let h = 0;
 
@@ -68,10 +68,10 @@ export class StratCollectBlock extends StrategyBase
             items: []
         });
 
-        h = this.addH(h, this.quickHeuristicFor(moveToInteract));
-        h = this.addH(h, this.quickHeuristicFor(breakBlock));
-        h = this.addH(h, this.quickHeuristicFor(waitForItemDrop));
-        h = this.addH(h, this.quickHeuristicFor(collectItemDrop));
+        h = this.addH(h, this.quickHeuristicFor(moveToInteract, depth));
+        h = this.addH(h, this.quickHeuristicFor(breakBlock, depth));
+        h = this.addH(h, this.quickHeuristicFor(waitForItemDrop, depth));
+        h = this.addH(h, this.quickHeuristicFor(collectItemDrop, depth));
 
         return h;
     }

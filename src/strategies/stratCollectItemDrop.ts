@@ -52,7 +52,7 @@ export class StratCollectItemDrop extends StrategyBase
                 const obtainItem = <ObtainItem>dependency;
                 return this.calculateHeuristicForItem(obtainItem.inputs.itemType);
 
-            case 'collectItemDrop':
+            case 'collectItemDrops':
                 const collectItem = <CollectItemDrops>dependency;
                 return this.calculateHeuristicForItemList(collectItem.inputs.items);
 
@@ -114,7 +114,7 @@ class CollectItemDropInstance extends StrategyExecutionInstance
 
                     break;
 
-                case 'collectItemDrop':
+                case 'collectItemDrops':
                     const collectItem = <CollectItemDrops>dependency;
                     entities = collectItem.inputs.items;
                     break;

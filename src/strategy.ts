@@ -56,6 +56,10 @@ export class Solver
      */
     findSolutionsFor(dependency: Dependency, caller?: StrategyBase, depth: number = 0): DependencyResolution
     {
+        // @ts-ignore
+        if (this.bot.gameplay.debugText)
+            console.log(`${'  '.repeat(depth)}Finding solutions for ${dependency.name}`);
+
         const solutions: [StrategyBase, number][] = [];
 
         for (const strategy of this.strategies)
@@ -63,7 +67,7 @@ export class Solver
             if (strategy === caller)
                 continue;
 
-            const h = strategy.estimateHeuristic(dependency);
+            const h = strategy.estimateHeuristic(dependency, depth + 1);
             if (h < 0)
                 continue;
 
@@ -72,7 +76,13 @@ export class Solver
 
         solutions.sort((a, b) => a[1] - b[1]);
 
-        return new DependencyResolution(dependency, solutions, depth);
+        const res = new DependencyResolution(dependency, solutions, depth + 1);
+
+        // @ts-ignore
+        if (this.bot.gameplay.debugText)
+            console.log(`${'  '.repeat(depth)}Found ${res.dependencyHandlers.length} solutions (h: ${res.dependencyHandlers.length > 0 ? res.dependencyHandlers[0][1] : -1})`);
+
+        return res;
     }
 
     /**
@@ -84,9 +94,9 @@ export class Solver
      * @returns The execution tree root node representing this execution instance and a
      * hierarchy of all tasks to preform/were preformed.
      */
-    runDependency(dependency: Dependency, cb: Callback): DependencyResolution
+    runDependency(dependency: Dependency, cb: Callback, depth: number): DependencyResolution
     {
-        const depRes = this.findSolutionsFor(dependency);
+        const depRes = this.findSolutionsFor(dependency, undefined, depth);
         depRes.runNext(cb);
         return depRes;
     }
@@ -115,7 +125,7 @@ export class DependencyResolution
                 throw new Error("No dependencies remaining!");
 
             console.log(`${'  '.repeat(this.depth)}Executing '${dep[0].name}'`);
-            dep[0].createExecutionInstance().run(this.dependency, cb);
+            dep[0].createExecutionInstance(this.depth).run(this.dependency, cb);
         }
         catch (err)
         {
@@ -129,20 +139,22 @@ export class DependencyResolution
     }
 }
 
-type Executor = new (parent: StrategyBase, solver: Solver) => StrategyExecutionInstance;
+type Executor = new (parent: StrategyBase, solver: Solver, depth: number) => StrategyExecutionInstance;
 
 export abstract class SolverHandler
 {
     protected readonly parent?: StrategyBase;
     protected readonly solver: Solver;
+    protected readonly depth: number;
 
-    constructor(solver: Solver, parent?: StrategyBase)
+    constructor(solver: Solver, parent?: StrategyBase, depth: number = 0)
     {
         if (!parent && this instanceof StrategyBase)
             parent = this;
 
         this.parent = parent;
         this.solver = solver;
+        this.depth = depth;
     }
 
     /**
@@ -153,9 +165,9 @@ export abstract class SolverHandler
      *
      * @returns The solved dependency resolution.
      */
-    protected findSolutionsFor(dependency: Dependency): DependencyResolution
+    protected findSolutionsFor(dependency: Dependency, depth = this.depth): DependencyResolution
     {
-        return this.solver.findSolutionsFor(dependency, this.parent);
+        return this.solver.findSolutionsFor(dependency, this.parent, depth);
     }
 
     /**
@@ -196,9 +208,9 @@ export abstract class SolverHandler
      * 
      * @returns The heuristic estimate, or -1 if it could not be resolved.
      */
-    protected quickHeuristicFor(dependency: Dependency): number
+    protected quickHeuristicFor(dependency: Dependency, depth: number): number
     {
-        const resolution = this.findSolutionsFor(dependency);
+        const resolution = this.findSolutionsFor(dependency, depth);
 
         if (!resolution.hasNext())
             return -1;
@@ -229,9 +241,9 @@ export abstract class StrategyBase extends SolverHandler
      * 
      * @returns The execution instance.
      */
-    public createExecutionInstance(): StrategyExecutionInstance
+    public createExecutionInstance(depth: number): StrategyExecutionInstance
     {
-        return new this.executor(this, this.solver);
+        return new this.executor(this, this.solver, depth);
     }
 
     /**
@@ -240,20 +252,21 @@ export abstract class StrategyBase extends SolverHandler
      * task.
      * 
      * @param dependency - The dependency to estimate for.
+     * @param depth - The depth of this strategy execution instance.
      * 
      * @returns The estimated heuristic cost, or a negative number if this task cannot
      * complete the given dependency task.
      */
-    abstract estimateHeuristic(dependency: Dependency): number;
+    abstract estimateHeuristic(dependency: Dependency, depth: number): number;
 }
 
 export abstract class StrategyExecutionInstance extends SolverHandler
 {
     readonly bot: Bot;
 
-    constructor(parent: StrategyBase, solver: Solver)
+    constructor(parent: StrategyBase, solver: Solver, depth: number)
     {
-        super(solver, parent);
+        super(solver, parent, depth);
         this.bot = parent.bot;
     }
 
