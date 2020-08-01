@@ -49,11 +49,13 @@ function run (message) {
 
     case /^break -?[0-9]+ -?[0-9]+ -?[0-9]+$/.test(message):
       bot.gameplay.solveFor(
-        new BreakBlock(
-          parseInt(command[1]),
-          parseInt(command[2]),
-          parseInt(command[3])
-        )
+        new BreakBlock({
+          position: new Vec3(
+            parseInt(command[1]),
+            parseInt(command[2]),
+            parseInt(command[3])
+          )
+        })
       )
       break
 
@@ -63,12 +65,12 @@ function run (message) {
 
     case /^stop$/.test(message):
       bot.chat('Stopping')
-      bot.gameplay.stopAll()
       break
   }
 }
 
 const readline = require('readline')
+const { Vec3 } = require('vec3')
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout

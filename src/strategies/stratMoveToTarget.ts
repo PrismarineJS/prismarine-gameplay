@@ -2,6 +2,7 @@ import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver }
 import { Movements, Result, Move } from 'mineflayer-pathfinder';
 import { MoveTo } from '../dependencies/moveTo';
 import { Vec3 } from 'vec3';
+import { MoveToInteract } from '../dependencies';
 
 const { Goal, GoalNear } = require('mineflayer-pathfinder').goals;
 
@@ -29,7 +30,7 @@ export class StratMoveToTarget extends StrategyBase
             case 'moveTo':
             case 'moveToInteract':
                 const moveTo = <MoveTo>dependency;
-                return this.calculateHeuristicForMoveTarget(moveTo.moveTarget);
+                return this.calculateHeuristicForMoveTarget(moveTo.inputs);
 
             default:
                 return -1;
@@ -57,15 +58,17 @@ class MoveToTargetInstance extends StrategyExecutionInstance
         try
         {
             let goal = null;
-            const targetPos: PositionHolder = (<MoveTo>dependency).moveTarget;
+            let targetPos = null;
 
             switch (dependency.name)
             {
                 case 'moveTo':
+                    targetPos = (<MoveTo>dependency).inputs;
                     goal = new MoveTargetGoal(targetPos);
                     break;
 
                 case 'moveToInteract':
+                    targetPos = (<MoveToInteract>dependency).inputs.position;
                     goal = new GoalNear(targetPos.x, targetPos.y, targetPos.z, 1); // TODO Replace with GoalInteract
                     break;
 

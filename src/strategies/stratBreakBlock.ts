@@ -1,7 +1,6 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
 import { BreakBlock } from '../dependencies/breakBlock';
 import { MoveToInteract } from '../dependencies';
-import { Vec3 } from 'vec3';
 
 // @ts-ignore
 import nbt from 'prismarine-nbt';
@@ -30,9 +29,7 @@ export class StratBreakBlock extends StrategyBase
     private estimateTime(breakBlock: BreakBlock): number
     {
         const moveHeuristic = this.quickHeuristicFor(new MoveToInteract({
-            x: breakBlock.x,
-            y: breakBlock.y,
-            z: breakBlock.z,
+            position: breakBlock.inputs.position
         }));
 
         if (moveHeuristic < 0)
@@ -48,8 +45,7 @@ export class StratBreakBlock extends StrategyBase
 
     private estimateBreakTime(breakBlock: BreakBlock): number
     {
-        const blockPos = new Vec3(breakBlock.x, breakBlock.y, breakBlock.z);
-        const block = this.bot.blockAt(blockPos);
+        const block = this.bot.blockAt(breakBlock.inputs.position);
 
         if (!block)
             return -1;
@@ -86,9 +82,7 @@ class BreakBlockInstance extends StrategyExecutionInstance
             const breakBlock = <BreakBlock>dependency;
 
             this.solveDependency(new MoveToInteract({
-                x: breakBlock.x,
-                y: breakBlock.y,
-                z: breakBlock.z,
+                position: breakBlock.inputs.position
             }), err =>
             {
                 if (err)
@@ -97,11 +91,10 @@ class BreakBlockInstance extends StrategyExecutionInstance
                     return;
                 }
 
-                const blockPos = new Vec3(breakBlock.x, breakBlock.y, breakBlock.z);
-                const block = this.bot.blockAt(blockPos);
+                const block = this.bot.blockAt(breakBlock.inputs.position);
 
                 if (block) this.bot.dig(block, cb);
-                else cb(new Error(`Cannot break block at ${blockPos} in unloaded chunk!`));
+                else cb(new Error(`Cannot break block at ${breakBlock.inputs.position} in unloaded chunk!`));
             });
 
         }

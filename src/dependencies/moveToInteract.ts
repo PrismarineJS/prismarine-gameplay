@@ -1,30 +1,28 @@
-import { Dependency } from "../strategy";
+import { Dependency, DependencyOutputs, DependencyInputs } from "../strategy";
+import { Vec3 } from "vec3";
 
-export interface MoveInteractTarget
+export interface MoveToInteractInputs extends DependencyInputs
 {
     /**
-     * The block x position.
+     * The block position.
      */
-    x: number;
+    position: Vec3;
+}
 
-    /**
-     * The block y position.
-     */
-    y: number;
+export interface MoveToInteractOutputs extends DependencyOutputs
+{
 
-    /**
-     * The block z position.
-     */
-    z: number;
 }
 
 export class MoveToInteract implements Dependency
 {
     readonly name: string = 'moveToInteract';
-    readonly moveTarget: MoveInteractTarget;
 
-    constructor(moveTarget: MoveInteractTarget)
-    {
-        this.moveTarget = moveTarget;
-    }
+    constructor(
+        readonly inputs: MoveToInteractInputs = {
+            position: new Vec3(0, 0, 0)
+        },
+        readonly outputs: MoveToInteractOutputs = {
+        })
+    { }
 }

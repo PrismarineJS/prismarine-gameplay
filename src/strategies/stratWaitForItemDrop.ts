@@ -32,19 +32,19 @@ class WaitForItemDropInstance extends StrategyExecutionInstance
         {
             const itemDrop = <WaitForItemDrop>dependency;
             const bot = this.bot;
-            let ticksRemaining = itemDrop.maxTicks;
+            let ticksRemaining = itemDrop.inputs.maxTicks;
 
             function entitySpawn(entity: Entity): void
             {
                 if (entity.objectType !== 'Item')
                     return;
 
-                if (entity.position.distanceTo(itemDrop.position) > itemDrop.maxDistance)
+                if (entity.position.distanceTo(itemDrop.inputs.position) > itemDrop.inputs.maxDistance)
                     return;
 
-                itemDrop.itemDrops.push(entity);
+                itemDrop.outputs.itemDrops.push(entity);
 
-                if (itemDrop.groupItems) ticksRemaining = 3;
+                if (itemDrop.inputs.groupItems) ticksRemaining = 3;
                 else cleanup();
             }
 

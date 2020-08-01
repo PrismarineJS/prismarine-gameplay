@@ -48,7 +48,7 @@ export class StratCollectItemDrop extends StrategyBase
         {
             case 'obtainItem':
                 const obtainItem = <ObtainItem>dependency;
-                return this.calculateHeuristicForItem(obtainItem.itemType);
+                return this.calculateHeuristicForItem(obtainItem.inputs.itemType);
 
             default:
                 return -1;
@@ -79,7 +79,7 @@ class CollectItemDropInstance extends StrategyExecutionInstance
                 throw new Error("Unsupported dependency!");
 
             const obtainItem = <ObtainItem>dependency;
-            const entity = getNearbyItem(this.bot, obtainItem.itemType);
+            const entity = getNearbyItem(this.bot, obtainItem.inputs.itemType);
 
             if (!entity)
                 throw new Error("No nearby item drops available!");

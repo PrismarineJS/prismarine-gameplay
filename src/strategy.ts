@@ -27,6 +27,10 @@ export interface Strategy
     exit(): void;
 }
 
+export interface DependencyInputs { }
+
+export interface DependencyOutputs { }
+
 /**
  * A simple container representing a world state/dependency that needs to be resolved.
  */
@@ -36,6 +40,9 @@ export interface Dependency
      * Gets the name of this dependency type.
      */
     readonly name: string;
+
+    readonly inputs: DependencyInputs;
+    readonly outputs: DependencyOutputs;
 }
 
 /**
