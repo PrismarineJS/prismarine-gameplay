@@ -60,7 +60,13 @@ function run (message) {
       break
 
     case /^collect [a-zA-Z_]+$/.test(message):
-      bot.chat('Mining for ' + command[1])
+      bot.gameplay.solveFor(
+        new ObtainItem({
+          itemType: require('minecraft-data')(bot.version).blocksByName[
+            command[1]
+          ].id
+        })
+      )
       break
 
     case /^stop$/.test(message):
@@ -71,6 +77,7 @@ function run (message) {
 
 const readline = require('readline')
 const { Vec3 } = require('vec3')
+const { ObtainItem } = require('../lib/dependencies/obtainItem')
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout

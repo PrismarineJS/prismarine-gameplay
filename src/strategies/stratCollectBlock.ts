@@ -1,6 +1,7 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Solver, Callback } from "../strategy";
-import { CollectBlock, MoveToInteract, BreakBlock, WaitForItemDrop } from "../dependencies";
+import { CollectBlock, MoveToInteract, BreakBlock, WaitForItemDrop, ObtainItem } from "../dependencies";
 import { CollectItemDrops } from "../dependencies/collectItemDrop";
+import { Vec3 } from "vec3";
 
 export class StratCollectBlock extends StrategyBase
 {
@@ -16,27 +17,48 @@ export class StratCollectBlock extends StrategyBase
         switch (dependency.name)
         {
             case 'collectBlock':
-                return this.collectBlockHeuristic(<CollectBlock>dependency);
+                return this.collectBlockHeuristic((<CollectBlock>dependency).inputs.position);
+
+            case 'obtainItem':
+                return this.obtainItemHeuristic((<ObtainItem>dependency).inputs.itemType);
 
             default:
                 return -1;
         }
     }
 
-    private collectBlockHeuristic(collectBlock: CollectBlock): number
+    private obtainItemHeuristic(itemType: number): number
+    {
+        const block = this.bot.findBlock({
+            matching: b => b.type === itemType,
+            maxDistance: 32
+        });
+
+        if (!block)
+            return -1;
+
+        let distance = this.bot.entity.position.distanceTo(block.position);
+        distance *= 1.2; // 20% for pathfinding around stuff
+        distance *= 10; // Estimates 10 ticks per block movement
+
+        const collectH = this.collectBlockHeuristic(block.position);
+        return this.addH(distance, collectH);
+    }
+
+    private collectBlockHeuristic(position: Vec3): number
     {
         let h = 0;
 
         const moveToInteract = new MoveToInteract({
-            position: collectBlock.inputs.position
+            position: position
         });
 
         const breakBlock = new BreakBlock({
-            position: collectBlock.inputs.position
+            position: position
         });
 
         const waitForItemDrop = new WaitForItemDrop({
-            position: collectBlock.inputs.position,
+            position: position,
             maxDistance: 1,
             maxTicks: 10,
             groupItems: true
@@ -69,13 +91,34 @@ class CollectBlockInstance extends StrategyExecutionInstance
     {
         try
         {
-            if (dependency.name !== 'collectBlock')
-                throw new Error("Unsupported dependency!");
+            let position: Vec3;
 
-            const collectBlock = <CollectBlock>dependency;
+            switch (dependency.name)
+            {
+                case 'collectBlock':
+                    const collectBlock = <CollectBlock>dependency;
+                    position = collectBlock.inputs.position;
+                    break;
+
+                case 'obtainItem':
+                    const obtainItem = <ObtainItem>dependency;
+                    position = this.bot.findBlock({
+                        matching: b => b.type === obtainItem.inputs.itemType,
+                        maxDistance: 32
+                    })?.position;
+
+                    if (!position)
+                        throw new Error("Cannot find block!");
+
+                    break;
+
+                default:
+                    throw new Error("Unsupported dependency!");
+            }
+
 
             this.solveDependency(new MoveToInteract({
-                position: collectBlock.inputs.position
+                position: position
             }), err =>
             {
                 if (err)
@@ -85,7 +128,7 @@ class CollectBlockInstance extends StrategyExecutionInstance
                 }
 
                 this.solveDependency(new BreakBlock({
-                    position: collectBlock.inputs.position
+                    position: position
                 }), err =>
                 {
                     if (err)
@@ -95,7 +138,7 @@ class CollectBlockInstance extends StrategyExecutionInstance
                     }
 
                     const waitForItemDrop = new WaitForItemDrop({
-                        position: collectBlock.inputs.position,
+                        position: position,
                         maxDistance: 1,
                         maxTicks: 10,
                         groupItems: true
