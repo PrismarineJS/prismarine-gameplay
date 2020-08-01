@@ -15,11 +15,52 @@ export class StratCollectBlock extends StrategyBase
     {
         switch (dependency.name)
         {
+            case 'collectBlock':
+                return this.collectBlockHeuristic(<CollectBlock>dependency);
+
             default:
                 return -1;
         }
     }
 
+    private collectBlockHeuristic(collectBlock: CollectBlock): number
+    {
+        let h = 0;
+
+        const moveToInteract = new MoveToInteract({
+            position: collectBlock.inputs.position
+        });
+
+        const breakBlock = new BreakBlock({
+            position: collectBlock.inputs.position
+        });
+
+        const waitForItemDrop = new WaitForItemDrop({
+            position: collectBlock.inputs.position,
+            maxDistance: 1,
+            maxTicks: 10,
+            groupItems: true
+        });
+
+        const collectItemDrop = new CollectItemDrops({
+            items: []
+        });
+
+        h = this.addH(h, this.quickHeuristicFor(moveToInteract));
+        h = this.addH(h, this.quickHeuristicFor(breakBlock));
+        h = this.addH(h, this.quickHeuristicFor(waitForItemDrop));
+        h = this.addH(h, this.quickHeuristicFor(collectItemDrop));
+
+        return h;
+    }
+
+    private addH(h: number, v: number): number
+    {
+        if (h < 0 || v < 0)
+            return -1;
+
+        return h + v;
+    }
 }
 
 class CollectBlockInstance extends StrategyExecutionInstance
