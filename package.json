@@ -37,6 +37,7 @@
     "mineflayer": "^2.25.0",
     "mineflayer-pathfinder": "^1.0.9",
     "prismarine-block": "^1.7.1",
+    "prismarine-chat": "^1.0.1",
     "prismarine-entity": "^1.0.0",
     "prismarine-nbt": "^1.3.0",
     "prismarine-viewer": "^1.2.2",
