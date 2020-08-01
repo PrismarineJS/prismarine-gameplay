@@ -79,6 +79,9 @@ class BreakBlockInstance extends StrategyExecutionInstance
     {
         try
         {
+            if (dependency.name !== 'breakBlock')
+                throw new Error("Unsupported dependency!");
+
             const breakBlock = <BreakBlock>dependency;
 
             this.solveDependency(new MoveToInteract({

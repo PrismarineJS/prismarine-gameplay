@@ -3,6 +3,8 @@ import { ObtainItem } from '../dependencies/obtainItem';
 import { Bot } from 'mineflayer';
 import { Entity } from 'prismarine-entity';
 import { Movements, Result } from 'mineflayer-pathfinder';
+import { CollectItemDrops } from '../dependencies';
+import { Vec3 } from 'vec3';
 
 const { GoalFollow } = require('mineflayer-pathfinder').goals;
 
@@ -50,9 +52,33 @@ export class StratCollectItemDrop extends StrategyBase
                 const obtainItem = <ObtainItem>dependency;
                 return this.calculateHeuristicForItem(obtainItem.inputs.itemType);
 
+            case 'collectItemDrop':
+                const collectItem = <CollectItemDrops>dependency;
+                return this.calculateHeuristicForItemList(collectItem.inputs.items);
+
             default:
                 return -1;
         }
+    }
+
+    private calculateHeuristicForItemList(items: Entity[]): number
+    {
+        let h = 0;
+
+        let pos: Vec3 = this.bot.entity.position;
+        for (const item of items)
+        {
+            const itemPos = item.position;
+
+            let distance = pos.distanceTo(itemPos);
+            distance *= 1.2; // Add 20% to account for pathfinding around stuff
+            distance *= 10; // Assume 10 ticks per block moved
+
+            h += distance;
+            pos = itemPos;
+        }
+
+        return h;
     }
 
     private calculateHeuristicForItem(itemId: number): number
@@ -64,6 +90,7 @@ export class StratCollectItemDrop extends StrategyBase
 
         let h = this.bot.entity.position.distanceTo(entity.position);
         h *= 1.2; // Add 20% to account for pathfinding around stuff
+        h *= 10; // Assume 10 ticks per block moved
 
         return h;
     }
@@ -75,70 +102,114 @@ class CollectItemDropInstance extends StrategyExecutionInstance
     {
         try
         {
-            if (dependency.name !== 'obtainItem')
-                throw new Error("Unsupported dependency!");
-
-            const obtainItem = <ObtainItem>dependency;
-            const entity = getNearbyItem(this.bot, obtainItem.inputs.itemType);
-
-            if (!entity)
-                throw new Error("No nearby item drops available!");
-
-            // @ts-ignore
-            const pathfinder: Pathfinder = bot.pathfinder;
-
-            const mcData = require('minecraft-data')(this.bot.version);
-            const defaultMove = new Movements(this.bot, mcData);
-            pathfinder.setMovements(defaultMove);
-
-            const followGoal = new GoalFollow(entity, 0);
-            pathfinder.setGoal(followGoal, true);
-
-            const bot = this.bot;
-
-            function entityGone(e: Entity)
+            let entities: Entity[] = [];
+            switch (dependency.name)
             {
-                if (e !== entity)
+                case 'obtainItem':
+                    const obtainItem = <ObtainItem>dependency;
+                    const entity = getNearbyItem(this.bot, obtainItem.inputs.itemType);
+
+                    if (entity)
+                        entities = [entity];
+
+                    break;
+
+                case 'collectItemDrop':
+                    const collectItem = <CollectItemDrops>dependency;
+                    entities = collectItem.inputs.items;
+                    break;
+
+                default:
+                    throw new Error("Unsupported dependency!");
+            }
+
+            const collectAll = () =>
+            {
+                const entity = entities.pop();
+                if (!entity)
+                {
+                    cb();
                     return;
+                }
 
-                cleanup(false);
-            }
+                if (!entity.isValid)
+                {
+                    collectAll();
+                    return;
+                }
 
-            function pathUpdate(results: Result)
-            {
-                if (results.status === 'noPath')
-                    cleanup(false);
-            }
+                this.collectEntity(entity, err =>
+                {
+                    if (err)
+                    {
+                        cb(err);
+                        return;
+                    }
 
-            function playerCollect(collector: Entity, item: Entity): void
-            {
-                if (collector === bot.entity && item === entity)
-                    cleanup(true);
-            }
+                    collectAll();
+                });
+            };
 
-            function cleanup(success: boolean)
-            {
-                bot.removeListener('entityGone', entityGone);
-                bot.removeListener('playerCollect', playerCollect);
-
-                // @ts-ignore
-                bot.removeListener('path_update', pathUpdate);
-
-                pathfinder.setGoal(null);
-
-                if (success) cb();
-                else cb(new Error("Failed to collect item!"));
-            }
-
-            this.bot.on('entityGone', entityGone);
-            this.bot.on('playerCollect', playerCollect);
-
-            // @ts-ignore
-            this.bot.on('path_update', pathUpdate);
+            collectAll();
         }
         catch (err)
         {
             cb(err)
         }
+    }
+
+    private collectEntity(entity: Entity, cb: Callback): void
+    {
+        // @ts-ignore
+        const pathfinder: Pathfinder = bot.pathfinder;
+
+        const mcData = require('minecraft-data')(this.bot.version);
+        const defaultMove = new Movements(this.bot, mcData);
+        pathfinder.setMovements(defaultMove);
+
+        const followGoal = new GoalFollow(entity, 0);
+        pathfinder.setGoal(followGoal, true);
+
+        const bot = this.bot;
+
+        function entityGone(e: Entity)
+        {
+            if (e !== entity)
+                return;
+
+            cleanup(false);
+        }
+
+        function pathUpdate(results: Result)
+        {
+            if (results.status === 'noPath')
+                cleanup(false);
+        }
+
+        function playerCollect(collector: Entity, item: Entity): void
+        {
+            if (collector === bot.entity && item === entity)
+                cleanup(true);
+        }
+
+        function cleanup(success: boolean)
+        {
+            bot.removeListener('entityGone', entityGone);
+            bot.removeListener('playerCollect', playerCollect);
+
+            // @ts-ignore
+            bot.removeListener('path_update', pathUpdate);
+
+            pathfinder.setGoal(null);
+
+            if (success) cb();
+            else cb(new Error("Failed to collect item!"));
+        }
+
+        this.bot.on('entityGone', entityGone);
+        this.bot.on('playerCollect', playerCollect);
+
+        // @ts-ignore
+        this.bot.on('path_update', pathUpdate);
     }
 }

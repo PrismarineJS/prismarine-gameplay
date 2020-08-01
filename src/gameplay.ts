@@ -1,8 +1,7 @@
 import { Solver, Dependency, StrategyBase } from "./strategy"
 import { Bot } from "mineflayer"
 import { Callback } from "./strategy";
-import { StratMoveToTarget, StratCollectItemDrop, StratWaitForItemDrop, StratBreakBlock } from "./strategies";
-
+import { StratMoveToTarget, StratCollectItemDrop, StratWaitForItemDrop, StratBreakBlock, StratCollectBlock } from "./strategies";
 
 function loadDefaultStrategies(gameplay: Gameplay): void
 {
@@ -10,6 +9,7 @@ function loadDefaultStrategies(gameplay: Gameplay): void
     gameplay.loadStrategy(new StratMoveToTarget(gameplay.solver));
     gameplay.loadStrategy(new StratWaitForItemDrop(gameplay.solver));
     gameplay.loadStrategy(new StratBreakBlock(gameplay.solver));
+    gameplay.loadStrategy(new StratCollectBlock(gameplay.solver));
 }
 
 /**

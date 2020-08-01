@@ -46,6 +46,7 @@ export class StratMoveToTarget extends StrategyBase
 
         let distance = pos.distanceTo(this.bot.entity.position);
         distance *= 1.2; // Add 20% for pathfinding around stuff
+        distance *= 10; // Assume 10 ticks per block moved
 
         return distance;
     }
