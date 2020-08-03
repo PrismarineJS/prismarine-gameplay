@@ -29,14 +29,18 @@
   },
   "homepage": "https://github.com/PrismarineJS/prismarine-gameplay#readme",
   "devDependencies": {
-    "jest": "^26.1.0",
+    "jest": "^26.2.2",
     "require-self": "^0.2.3"
   },
   "dependencies": {
+    "minecraft-data": "^2.63.0",
     "mineflayer": "^2.25.0",
-    "mineflayer-pathfinder": "^1.0.9",
+    "mineflayer-pathfinder": "^1.0.10",
     "prismarine-block": "^1.7.1",
+    "prismarine-chat": "^1.0.2",
     "prismarine-entity": "^1.0.0",
+    "prismarine-nbt": "^1.3.0",
+    "readline": "^1.3.0",
     "typescript": "^3.9.7",
     "vec3": "^0.1.6"
   },

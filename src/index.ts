@@ -1,9 +1,10 @@
 import { Bot } from 'mineflayer';
 import { Gameplay } from './gameplay';
 
-export * from './strats';
 export * from './gameplay';
 export * from './strategy';
+export * from './dependencies';
+export * from './tree';
 
 export function gameplay(bot: Bot): void
 {
