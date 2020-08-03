@@ -80,7 +80,7 @@ class StrategyTreeData implements TreeData
         {
             const dep = new DependencyTreeData(this.solver, dependency);
             const childTree = new Tree(dep);
-            tree.children.push(childTree);
+            tree.addChild(childTree);
 
             childTree.execute(cb);
         };
@@ -134,7 +134,7 @@ class DependencyTreeData implements TreeData
 
             childIndex++;
 
-            tree.children.push(childTree);
+            tree.addChild(childTree);
             childTree.execute(() =>
             {
                 if (childTree.status === ExecutionStatus.Success) cb();
@@ -164,17 +164,33 @@ export class Tree
     /**
      * All child tree nodes.
      */
-    readonly children: Tree[] = [];
+    private readonly children: Tree[] = [];
 
     /**
      * The data being stored in this tree node.
      */
-    readonly data: TreeData;
+    private readonly data: TreeData;
 
     /**
      * The current execution status of this tree node.
      */
     private _status: ExecutionStatus = ExecutionStatus.Pending;
+
+    /**
+     * If this action failed, this contains the error message object.
+     */
+    private errMsg?: Error;
+
+    /**
+     * The parent node of this node.
+     */
+    private parent?: Tree;
+
+    /**
+     * If true, the console is spammed with information every time the tree updates.
+     * Useful for debugging the solver.
+     */
+    debugMode = false;
 
     /**
      * Creates a new tree node object.
@@ -194,6 +210,12 @@ export class Tree
         return this._status;
     }
 
+    get root(): Tree
+    {
+        if (this.parent === undefined) return this;
+        else return this.parent.root;
+    }
+
     /**
      * Prints this tree to the console for debugging purposes.
      * 
@@ -201,7 +223,12 @@ export class Tree
      */
     printDebug(indent: number = 0)
     {
-        console.log('  '.repeat(indent) + this.data.getText() + `  (${this.status})`);
+        let text = `${'  '.repeat(indent)}${this.data.getText()}  (${this.status})`;
+
+        if (this.errMsg)
+            text += ` Err: "${this.errMsg.message}"`;
+
+        console.log(text);
 
         for (const child of this.children)
             child.printDebug(indent + 1);
@@ -220,12 +247,37 @@ export class Tree
         this._status = ExecutionStatus.Running;
         this.data.execute(this, err =>
         {
-            if (err) this._status = ExecutionStatus.Failed;
-            else this._status = ExecutionStatus.Success;
+            if (err)
+            {
+                this._status = ExecutionStatus.Failed;
+                this.errMsg = err;
+            }
+            else
+                this._status = ExecutionStatus.Success;
+
+            if (this.debugMode)
+            {
+                console.log("==================================================================");
+                this.root.printDebug();
+                console.log("==================================================================");
+            }
 
             if (cb)
                 cb(err);
         });
+    }
+
+    addChild(tree: Tree): void
+    {
+        this.children.push(tree);
+        tree.parent = this;
+
+        if (this.debugMode)
+        {
+            console.log("==================================================================");
+            this.root.printDebug();
+            console.log("==================================================================");
+        }
     }
 }
 

@@ -21,7 +21,7 @@ export class Gameplay
 {
     readonly solver: Solver;
 
-    debugText: boolean = true;
+    debugText: boolean = false;
 
     /**
      * Creates a new gameplay object
@@ -54,6 +54,10 @@ export class Gameplay
         const finish = cb || function () { };
 
         const tree = createTree(this.solver, dependency);
+
+        if (this.debugText)
+            tree.debugMode = true;
+
         tree.execute(err => finish(err));
     }
 

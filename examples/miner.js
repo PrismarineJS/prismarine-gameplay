@@ -28,6 +28,7 @@ bot.loadPlugin(gameplay)
 
 bot.once('spawn', () => {
   mineflayerViewer(bot, { firstPerson: true, port: 3000 })
+  bot.gameplay.debugText = true
 })
 
 // const ChatMessage = require('prismarine-chat')('1.16')
