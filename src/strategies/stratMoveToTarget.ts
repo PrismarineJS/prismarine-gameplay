@@ -55,95 +55,88 @@ export class StratMoveToTarget extends StrategyBase
 
 class MoveToTargetInstance extends StrategyExecutionInstance
 {
-    run(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
+    handle(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
-        try
+        let goal = null;
+        let targetPos = null;
+
+        switch (dependency.name)
         {
-            let goal = null;
-            let targetPos = null;
+            case 'moveTo':
+                targetPos = (<MoveTo>dependency).inputs;
+                goal = new MoveTargetGoal(targetPos);
+                break;
 
-            switch (dependency.name)
-            {
-                case 'moveTo':
-                    targetPos = (<MoveTo>dependency).inputs;
-                    goal = new MoveTargetGoal(targetPos);
-                    break;
+            case 'moveToInteract':
+                targetPos = (<MoveToInteract>dependency).inputs.position;
+                goal = new GoalNear(targetPos.x, targetPos.y, targetPos.z, 1); // TODO Replace with GoalInteract
+                break;
 
-                case 'moveToInteract':
-                    targetPos = (<MoveToInteract>dependency).inputs.position;
-                    goal = new GoalNear(targetPos.x, targetPos.y, targetPos.z, 1); // TODO Replace with GoalInteract
-                    break;
-
-                default:
-                    throw new Error("Unsupported dependency!");
-            }
-
-            // TODO Switch to a more stable "isEnd" API
-            const node = {
-                x: Math.floor(this.bot.entity.position.x),
-                y: Math.floor(this.bot.entity.position.y),
-                z: Math.floor(this.bot.entity.position.z),
-            };
-            if (goal.isEnd(node))
-            {
-                cb();
-                return
-            }
-
-            // @ts-ignore
-            if (this.bot.gameplay.debugText)
-            {
-                const x = targetPos.x === undefined ? '-' : targetPos.x;
-                const y = targetPos.y === undefined ? '-' : targetPos.y;
-                const z = targetPos.z === undefined ? '-' : targetPos.z;
-                console.log(`Moving from ${this.bot.entity.position} to (${x}, ${y}, ${z})`);
-            }
-
-            // @ts-ignore
-            const pathfinder: Pathfinder = this.bot.pathfinder;
-
-            const mcData = require('minecraft-data')(this.bot.version);
-            const defaultMove = new Movements(this.bot, mcData);
-            pathfinder.setMovements(defaultMove);
-            pathfinder.setGoal(goal);
-
-            const bot = this.bot;
-
-            function pathUpdate(results: Result)
-            {
-                if (results.status === 'noPath')
-                    cleanup(false);
-            }
-
-            function goalReached()
-            {
-                cleanup(true);
-            }
-
-            function cleanup(success: boolean)
-            {
-                // @ts-ignore
-                bot.removeListener('goal_reached', goalReached);
-
-                // @ts-ignore
-                bot.removeListener('path_update', pathUpdate);
-
-                pathfinder.setGoal(null);
-
-                if (success) cb();
-                else cb(new Error("No path to target!"));
-            }
-
-            // @ts-ignore
-            this.bot.on('goal_reached', goalReached);
-
-            // @ts-ignore
-            this.bot.on('path_update', pathUpdate);
+            default:
+                throw new Error("Unsupported dependency!");
         }
-        catch (err)
+
+        // TODO Switch to a more stable "isEnd" API
+        const node = {
+            x: Math.floor(this.bot.entity.position.x),
+            y: Math.floor(this.bot.entity.position.y),
+            z: Math.floor(this.bot.entity.position.z),
+        };
+        if (goal.isEnd(node))
         {
-            cb(err)
+            cb();
+            return
         }
+
+        // @ts-ignore
+        if (this.bot.gameplay.debugText)
+        {
+            const x = targetPos.x === undefined ? '-' : targetPos.x;
+            const y = targetPos.y === undefined ? '-' : targetPos.y;
+            const z = targetPos.z === undefined ? '-' : targetPos.z;
+            console.log(`Moving from ${this.bot.entity.position} to (${x}, ${y}, ${z})`);
+        }
+
+        // @ts-ignore
+        const pathfinder: Pathfinder = this.bot.pathfinder;
+
+        const mcData = require('minecraft-data')(this.bot.version);
+        const defaultMove = new Movements(this.bot, mcData);
+        pathfinder.setMovements(defaultMove);
+        pathfinder.setGoal(goal);
+
+        const bot = this.bot;
+
+        function pathUpdate(results: Result)
+        {
+            if (results.status === 'noPath')
+                cleanup(false);
+        }
+
+        function goalReached()
+        {
+            cleanup(true);
+        }
+
+        function cleanup(success: boolean)
+        {
+            // @ts-ignore
+            bot.removeListener('goal_reached', goalReached);
+
+            // @ts-ignore
+            bot.removeListener('path_update', pathUpdate);
+
+            pathfinder.setGoal(null);
+
+            if (success) cb();
+            else cb(new Error("No path to target!"));
+        }
+
+        // @ts-ignore
+        this.bot.on('goal_reached', goalReached);
+
+        // @ts-ignore
+        this.bot.on('path_update', pathUpdate);
     }
 }
 

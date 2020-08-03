@@ -88,37 +88,45 @@ export class StratCollectBlock extends StrategyBase
 
 class CollectBlockInstance extends StrategyExecutionInstance
 {
-    run(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
+    handle(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
-        try
+        let position: Vec3;
+
+        switch (dependency.name)
         {
-            let position: Vec3;
+            case 'collectBlock':
+                const collectBlock = <CollectBlock>dependency;
+                position = collectBlock.inputs.position;
+                break;
 
-            switch (dependency.name)
+            case 'obtainItem':
+                const obtainItem = <ObtainItem>dependency;
+                position = this.bot.findBlock({
+                    matching: b => b.type === obtainItem.inputs.itemType,
+                    maxDistance: 32
+                })?.position;
+
+                if (!position)
+                    throw new Error("Cannot find block!");
+
+                break;
+
+            default:
+                throw new Error("Unsupported dependency!");
+        }
+
+
+        resolver(new MoveToInteract({
+            position: position
+        }), err =>
+        {
+            if (err)
             {
-                case 'collectBlock':
-                    const collectBlock = <CollectBlock>dependency;
-                    position = collectBlock.inputs.position;
-                    break;
-
-                case 'obtainItem':
-                    const obtainItem = <ObtainItem>dependency;
-                    position = this.bot.findBlock({
-                        matching: b => b.type === obtainItem.inputs.itemType,
-                        maxDistance: 32
-                    })?.position;
-
-                    if (!position)
-                        throw new Error("Cannot find block!");
-
-                    break;
-
-                default:
-                    throw new Error("Unsupported dependency!");
+                cb(err);
+                return;
             }
 
-
-            resolver(new MoveToInteract({
+            resolver(new BreakBlock({
                 position: position
             }), err =>
             {
@@ -128,9 +136,14 @@ class CollectBlockInstance extends StrategyExecutionInstance
                     return;
                 }
 
-                resolver(new BreakBlock({
-                    position: position
-                }), err =>
+                const waitForItemDrop = new WaitForItemDrop({
+                    position: position,
+                    maxDistance: 1,
+                    maxTicks: 10,
+                    groupItems: true
+                });
+
+                resolver(waitForItemDrop, err =>
                 {
                     if (err)
                     {
@@ -138,14 +151,11 @@ class CollectBlockInstance extends StrategyExecutionInstance
                         return;
                     }
 
-                    const waitForItemDrop = new WaitForItemDrop({
-                        position: position,
-                        maxDistance: 1,
-                        maxTicks: 10,
-                        groupItems: true
+                    const collectItemDrop = new CollectItemDrops({
+                        items: waitForItemDrop.outputs.itemDrops
                     });
 
-                    resolver(waitForItemDrop, err =>
+                    resolver(collectItemDrop, err =>
                     {
                         if (err)
                         {
@@ -153,27 +163,10 @@ class CollectBlockInstance extends StrategyExecutionInstance
                             return;
                         }
 
-                        const collectItemDrop = new CollectItemDrops({
-                            items: waitForItemDrop.outputs.itemDrops
-                        });
-
-                        resolver(collectItemDrop, err =>
-                        {
-                            if (err)
-                            {
-                                cb(err);
-                                return;
-                            }
-
-                            cb();
-                        });
+                        cb();
                     });
-                })
-            });
-        }
-        catch (err)
-        {
-            cb(err)
-        }
+                });
+            })
+        });
     }
 }

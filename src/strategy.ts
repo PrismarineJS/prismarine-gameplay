@@ -157,6 +157,8 @@ export abstract class StrategyExecutionInstance
         this.name = parent.name;
     }
 
+    abstract handle(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
+
     /**
      * Executes this strategy.
      *
@@ -164,5 +166,15 @@ export abstract class StrategyExecutionInstance
      * @param resolver - The resolver for handling dependencies while running.
      * @param cb - The callback to execute when this instance has finished executing.
      */
-    abstract run(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void;
+    run(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
+    {
+        try
+        {
+            this.handle(dependency, resolver, cb);
+        }
+        catch (err)
+        {
+            cb(err);
+        }
+    }
 }

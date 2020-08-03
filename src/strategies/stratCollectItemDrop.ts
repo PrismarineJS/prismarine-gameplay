@@ -99,64 +99,57 @@ export class StratCollectItemDrop extends StrategyBase
 
 class CollectItemDropInstance extends StrategyExecutionInstance
 {
-    run(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
+    handle(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
-        try
+        let entities: Entity[] = [];
+        switch (dependency.name)
         {
-            let entities: Entity[] = [];
-            switch (dependency.name)
+            case 'obtainItem':
+                const obtainItem = <ObtainItem>dependency;
+                const entity = getNearbyItem(this.bot, obtainItem.inputs.itemType);
+
+                if (entity)
+                    entities = [entity];
+
+                break;
+
+            case 'collectItemDrops':
+                const collectItem = <CollectItemDrops>dependency;
+                entities = collectItem.inputs.items;
+                break;
+
+            default:
+                throw new Error("Unsupported dependency!");
+        }
+
+        const collectAll = () =>
+        {
+            const entity = entities.pop();
+            if (!entity)
             {
-                case 'obtainItem':
-                    const obtainItem = <ObtainItem>dependency;
-                    const entity = getNearbyItem(this.bot, obtainItem.inputs.itemType);
-
-                    if (entity)
-                        entities = [entity];
-
-                    break;
-
-                case 'collectItemDrops':
-                    const collectItem = <CollectItemDrops>dependency;
-                    entities = collectItem.inputs.items;
-                    break;
-
-                default:
-                    throw new Error("Unsupported dependency!");
+                cb();
+                return;
             }
 
-            const collectAll = () =>
+            if (!entity.isValid)
             {
-                const entity = entities.pop();
-                if (!entity)
+                collectAll();
+                return;
+            }
+
+            this.collectEntity(entity, err =>
+            {
+                if (err)
                 {
-                    cb();
+                    cb(err);
                     return;
                 }
 
-                if (!entity.isValid)
-                {
-                    collectAll();
-                    return;
-                }
+                collectAll();
+            });
+        };
 
-                this.collectEntity(entity, err =>
-                {
-                    if (err)
-                    {
-                        cb(err);
-                        return;
-                    }
-
-                    collectAll();
-                });
-            };
-
-            collectAll();
-        }
-        catch (err)
-        {
-            cb(err)
-        }
+        collectAll();
     }
 
     private collectEntity(entity: Entity, cb: Callback): void

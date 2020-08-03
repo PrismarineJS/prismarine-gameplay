@@ -30,43 +30,35 @@ export class StratCollectResources extends StrategyBase
 
 class CollectResourcesInstance extends StrategyExecutionInstance
 {
-    run(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
+    handle(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
-        try
-        {
-            const obtainItems = <ObtainItems>dependency;
-            let remaining = obtainItems.inputs.count;
+        const obtainItems = <ObtainItems>dependency;
+        let remaining = obtainItems.inputs.count;
 
-            const collectAnother = () =>
+        const collectAnother = () =>
+        {
+            if (remaining === 0)
             {
-                if (remaining === 0)
+                cb();
+                return;
+            }
+
+            remaining--;
+
+            resolver(new ObtainItem({
+                itemType: obtainItems.inputs.itemType
+            }), err =>
+            {
+                if (err)
                 {
-                    cb();
+                    cb(err)
                     return;
                 }
 
-                remaining--;
-
-                resolver(new ObtainItem({
-                    itemType: obtainItems.inputs.itemType
-                }), err =>
-                {
-                    if (err)
-                    {
-                        cb(err)
-                        return;
-                    }
-
-                    collectAnother();
-                });
-            }
-
-            collectAnother();
-
+                collectAnother();
+            });
         }
-        catch (err)
-        {
-            cb(err)
-        }
+
+        collectAnother();
     }
 }

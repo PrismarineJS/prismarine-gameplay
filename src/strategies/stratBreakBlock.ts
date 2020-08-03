@@ -76,35 +76,27 @@ export class StratBreakBlock extends StrategyBase
 
 class BreakBlockInstance extends StrategyExecutionInstance
 {
-    run(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
+    handle(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
-        try
+        if (dependency.name !== 'breakBlock')
+            throw new Error("Unsupported dependency!");
+
+        const breakBlock = <BreakBlock>dependency;
+
+        resolver(new MoveToInteract({
+            position: breakBlock.inputs.position
+        }), err =>
         {
-            if (dependency.name !== 'breakBlock')
-                throw new Error("Unsupported dependency!");
-
-            const breakBlock = <BreakBlock>dependency;
-
-            resolver(new MoveToInteract({
-                position: breakBlock.inputs.position
-            }), err =>
+            if (err)
             {
-                if (err)
-                {
-                    cb(err);
-                    return;
-                }
+                cb(err);
+                return;
+            }
 
-                const block = this.bot.blockAt(breakBlock.inputs.position);
+            const block = this.bot.blockAt(breakBlock.inputs.position);
 
-                if (block) this.bot.dig(block, cb);
-                else cb(new Error(`Cannot break block at ${breakBlock.inputs.position} in unloaded chunk!`));
-            });
-
-        }
-        catch (err)
-        {
-            cb(err)
-        }
+            if (block) this.bot.dig(block, cb);
+            else cb(new Error(`Cannot break block at ${breakBlock.inputs.position} in unloaded chunk!`));
+        });
     }
 }

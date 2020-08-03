@@ -27,49 +27,42 @@ export class StratWaitForItemDrop extends StrategyBase
 
 class WaitForItemDropInstance extends StrategyExecutionInstance
 {
-    run(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
+    handle(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
-        try
+        const itemDrop = <WaitForItemDrop>dependency;
+        const bot = this.bot;
+        let ticksRemaining = itemDrop.inputs.maxTicks;
+
+        function entitySpawn(entity: Entity): void
         {
-            const itemDrop = <WaitForItemDrop>dependency;
-            const bot = this.bot;
-            let ticksRemaining = itemDrop.inputs.maxTicks;
+            if (entity.objectType !== 'Item')
+                return;
 
-            function entitySpawn(entity: Entity): void
-            {
-                if (entity.objectType !== 'Item')
-                    return;
+            if (entity.position.distanceTo(itemDrop.inputs.position) > itemDrop.inputs.maxDistance)
+                return;
 
-                if (entity.position.distanceTo(itemDrop.inputs.position) > itemDrop.inputs.maxDistance)
-                    return;
+            itemDrop.outputs.itemDrops.push(entity);
 
-                itemDrop.outputs.itemDrops.push(entity);
-
-                if (itemDrop.inputs.groupItems) ticksRemaining = 3;
-                else cleanup();
-            }
-
-            function physicTick(): void
-            {
-                ticksRemaining--;
-
-                if (ticksRemaining <= 0)
-                    cleanup();
-            }
-
-            function cleanup(): void
-            {
-                bot.removeListener('entitySpawn', entitySpawn);
-                bot.removeListener('physicTick', physicTick);
-                cb();
-            }
-
-            bot.on('entitySpawn', entitySpawn);
-            bot.on('physicTick', physicTick);
+            if (itemDrop.inputs.groupItems) ticksRemaining = 3;
+            else cleanup();
         }
-        catch (err)
+
+        function physicTick(): void
         {
-            cb(err)
+            ticksRemaining--;
+
+            if (ticksRemaining <= 0)
+                cleanup();
         }
+
+        function cleanup(): void
+        {
+            bot.removeListener('entitySpawn', entitySpawn);
+            bot.removeListener('physicTick', physicTick);
+            cb();
+        }
+
+        bot.on('entitySpawn', entitySpawn);
+        bot.on('physicTick', physicTick);
     }
 }
