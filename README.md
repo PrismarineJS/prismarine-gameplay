@@ -11,6 +11,8 @@ A high level API plugin for working with Mineflayer bots.
 
 The goal of this plugin is to allow bot developers to control bots and preform high level actions using as very little code. The plugin allows the bot to have a much deeper understanding of the core gameplay elements of Minecraft without each specific task needing to be specified.
 
+**This plugin is not yet for release.**
+
 ## Usage
 
 ```js
