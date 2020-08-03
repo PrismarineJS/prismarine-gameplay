@@ -2,6 +2,7 @@ import { Solver, Dependency, StrategyBase } from "./strategy"
 import { Bot } from "mineflayer"
 import { Callback } from "./strategy";
 import { StratMoveToTarget, StratCollectItemDrop, StratWaitForItemDrop, StratBreakBlock, StratCollectBlock, StratCollectResources } from "./strategies";
+import { createTree } from "./tree";
 
 function loadDefaultStrategies(gameplay: Gameplay): void
 {
@@ -43,23 +44,6 @@ export class Gameplay
     {
         // TODO Don't run strategies while executing.
 
-        const finish: Callback = err =>
-        {
-            if (this.debugText)
-            {
-                if (err)
-                {
-                    console.log(`Task '${dependency.name}' finished with errors!`);
-                    console.log(err);
-                }
-                else
-                    console.log(`Task '${dependency.name}' complete.`);
-            }
-
-            if (cb)
-                cb(err);
-        };
-
         if (this.debugText)
         {
             console.log(`Executing task '${dependency.name}'`);
@@ -67,7 +51,10 @@ export class Gameplay
             console.log(dependency);
         }
 
-        this.solver.runDependency(dependency, finish, 0);
+        const finish = cb || function () { };
+
+        const tree = createTree(this.solver, dependency);
+        tree.execute(err => finish(err));
     }
 
     loadStrategy(strategy: StrategyBase): void

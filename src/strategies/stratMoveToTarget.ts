@@ -3,6 +3,7 @@ import { Movements, Result, Move } from 'mineflayer-pathfinder';
 import { MoveTo } from '../dependencies/moveTo';
 import { Vec3 } from 'vec3';
 import { MoveToInteract } from '../dependencies';
+import { DependencyResolver } from '../tree';
 
 const { Goal, GoalNear } = require('mineflayer-pathfinder').goals;
 
@@ -54,7 +55,7 @@ export class StratMoveToTarget extends StrategyBase
 
 class MoveToTargetInstance extends StrategyExecutionInstance
 {
-    run(dependency: Dependency, cb: Callback): void
+    run(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
         try
         {

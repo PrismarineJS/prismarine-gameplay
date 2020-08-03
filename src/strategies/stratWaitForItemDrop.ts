@@ -1,6 +1,7 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
 import { Entity } from 'prismarine-entity';
 import { WaitForItemDrop } from '../dependencies/waitForItemDrop';
+import { DependencyResolver } from '../tree';
 
 export class StratWaitForItemDrop extends StrategyBase
 {
@@ -26,7 +27,7 @@ export class StratWaitForItemDrop extends StrategyBase
 
 class WaitForItemDropInstance extends StrategyExecutionInstance
 {
-    run(dependency: Dependency, cb: Callback): void
+    run(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
         try
         {

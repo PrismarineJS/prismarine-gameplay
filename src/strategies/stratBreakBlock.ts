@@ -4,6 +4,7 @@ import { MoveToInteract } from '../dependencies';
 
 // @ts-ignore
 import nbt from 'prismarine-nbt';
+import { HeuristicResolver, DependencyResolver } from '../tree';
 
 export class StratBreakBlock extends StrategyBase
 {
@@ -14,23 +15,23 @@ export class StratBreakBlock extends StrategyBase
         super(solver, BreakBlockInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, depth: number): number
+    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number
     {
         switch (dependency.name)
         {
             case 'breakBlock':
-                return this.estimateTime(<BreakBlock>dependency, depth);
+                return this.estimateTime(<BreakBlock>dependency, resolver);
 
             default:
                 return -1;
         }
     }
 
-    private estimateTime(breakBlock: BreakBlock, depth: number): number
+    private estimateTime(breakBlock: BreakBlock, resolver: HeuristicResolver): number
     {
-        const moveHeuristic = this.quickHeuristicFor(new MoveToInteract({
+        const moveHeuristic = resolver(new MoveToInteract({
             position: breakBlock.inputs.position
-        }), depth);
+        }));
 
         if (moveHeuristic < 0)
             return -1;
@@ -75,7 +76,7 @@ export class StratBreakBlock extends StrategyBase
 
 class BreakBlockInstance extends StrategyExecutionInstance
 {
-    run(dependency: Dependency, cb: Callback): void
+    run(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
         try
         {
@@ -84,7 +85,7 @@ class BreakBlockInstance extends StrategyExecutionInstance
 
             const breakBlock = <BreakBlock>dependency;
 
-            this.solveDependency(new MoveToInteract({
+            resolver(new MoveToInteract({
                 position: breakBlock.inputs.position
             }), err =>
             {

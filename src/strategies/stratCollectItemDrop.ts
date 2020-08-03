@@ -5,6 +5,7 @@ import { Entity } from 'prismarine-entity';
 import { Movements, Result } from 'mineflayer-pathfinder';
 import { CollectItemDrops } from '../dependencies';
 import { Vec3 } from 'vec3';
+import { DependencyResolver } from '../tree';
 
 const { GoalFollow } = require('mineflayer-pathfinder').goals;
 
@@ -98,7 +99,7 @@ export class StratCollectItemDrop extends StrategyBase
 
 class CollectItemDropInstance extends StrategyExecutionInstance
 {
-    run(dependency: Dependency, cb: Callback): void
+    run(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
         try
         {

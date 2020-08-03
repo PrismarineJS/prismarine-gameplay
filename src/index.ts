@@ -4,6 +4,7 @@ import { Gameplay } from './gameplay';
 export * from './gameplay';
 export * from './strategy';
 export * from './dependencies';
+export * from './tree';
 
 export function gameplay(bot: Bot): void
 {

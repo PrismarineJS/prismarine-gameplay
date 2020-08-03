@@ -1,6 +1,7 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
 import { ObtainItems } from '../dependencies/obtainItems';
 import { ObtainItem } from '../dependencies';
+import { DependencyResolver, HeuristicResolver } from '../tree';
 
 export class StratCollectResources extends StrategyBase
 {
@@ -11,15 +12,15 @@ export class StratCollectResources extends StrategyBase
         super(solver, CollectResourcesInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, depth: number): number
+    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number
     {
         switch (dependency.name)
         {
             case 'obtainItems':
                 const obtainItems = <ObtainItems>dependency;
-                return this.quickHeuristicFor(new ObtainItem({
+                return resolver(new ObtainItem({
                     itemType: obtainItems.inputs.itemType
-                }), depth) * obtainItems.inputs.count;
+                })) * obtainItems.inputs.count;
 
             default:
                 return -1;
@@ -29,7 +30,7 @@ export class StratCollectResources extends StrategyBase
 
 class CollectResourcesInstance extends StrategyExecutionInstance
 {
-    run(dependency: Dependency, cb: Callback): void
+    run(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
         try
         {
@@ -46,7 +47,7 @@ class CollectResourcesInstance extends StrategyExecutionInstance
 
                 remaining--;
 
-                this.solveDependency(new ObtainItem({
+                resolver(new ObtainItem({
                     itemType: obtainItems.inputs.itemType
                 }), err =>
                 {

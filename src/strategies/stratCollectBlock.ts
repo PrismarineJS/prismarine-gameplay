@@ -2,6 +2,7 @@ import { StrategyBase, StrategyExecutionInstance, Dependency, Solver, Callback }
 import { CollectBlock, MoveToInteract, BreakBlock, WaitForItemDrop, ObtainItem } from "../dependencies";
 import { CollectItemDrops } from "../dependencies/collectItemDrop";
 import { Vec3 } from "vec3";
+import { DependencyResolver, HeuristicResolver } from "../tree";
 
 export class StratCollectBlock extends StrategyBase
 {
@@ -12,22 +13,22 @@ export class StratCollectBlock extends StrategyBase
         super(solver, CollectBlockInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, depth: number): number
+    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number
     {
         switch (dependency.name)
         {
             case 'collectBlock':
-                return this.collectBlockHeuristic((<CollectBlock>dependency).inputs.position, depth);
+                return this.collectBlockHeuristic((<CollectBlock>dependency).inputs.position, resolver);
 
             case 'obtainItem':
-                return this.obtainItemHeuristic((<ObtainItem>dependency).inputs.itemType, depth);
+                return this.obtainItemHeuristic((<ObtainItem>dependency).inputs.itemType, resolver);
 
             default:
                 return -1;
         }
     }
 
-    private obtainItemHeuristic(itemType: number, depth: number): number
+    private obtainItemHeuristic(itemType: number, resolver: HeuristicResolver): number
     {
         const block = this.bot.findBlock({
             matching: b => b.type === itemType,
@@ -41,11 +42,11 @@ export class StratCollectBlock extends StrategyBase
         distance *= 1.2; // 20% for pathfinding around stuff
         distance *= 10; // Estimates 10 ticks per block movement
 
-        const collectH = this.collectBlockHeuristic(block.position, depth);
+        const collectH = this.collectBlockHeuristic(block.position, resolver);
         return this.addH(distance, collectH);
     }
 
-    private collectBlockHeuristic(position: Vec3, depth: number): number
+    private collectBlockHeuristic(position: Vec3, resolver: HeuristicResolver): number
     {
         let h = 0;
 
@@ -68,10 +69,10 @@ export class StratCollectBlock extends StrategyBase
             items: []
         });
 
-        h = this.addH(h, this.quickHeuristicFor(moveToInteract, depth));
-        h = this.addH(h, this.quickHeuristicFor(breakBlock, depth));
-        h = this.addH(h, this.quickHeuristicFor(waitForItemDrop, depth));
-        h = this.addH(h, this.quickHeuristicFor(collectItemDrop, depth));
+        h = this.addH(h, resolver(moveToInteract));
+        h = this.addH(h, resolver(breakBlock));
+        h = this.addH(h, resolver(waitForItemDrop));
+        h = this.addH(h, resolver(collectItemDrop));
 
         return h;
     }
@@ -87,7 +88,7 @@ export class StratCollectBlock extends StrategyBase
 
 class CollectBlockInstance extends StrategyExecutionInstance
 {
-    run(dependency: Dependency, cb: Callback): void
+    run(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
         try
         {
@@ -117,7 +118,7 @@ class CollectBlockInstance extends StrategyExecutionInstance
             }
 
 
-            this.solveDependency(new MoveToInteract({
+            resolver(new MoveToInteract({
                 position: position
             }), err =>
             {
@@ -127,7 +128,7 @@ class CollectBlockInstance extends StrategyExecutionInstance
                     return;
                 }
 
-                this.solveDependency(new BreakBlock({
+                resolver(new BreakBlock({
                     position: position
                 }), err =>
                 {
@@ -144,7 +145,7 @@ class CollectBlockInstance extends StrategyExecutionInstance
                         groupItems: true
                     });
 
-                    this.solveDependency(waitForItemDrop, err =>
+                    resolver(waitForItemDrop, err =>
                     {
                         if (err)
                         {
@@ -156,7 +157,7 @@ class CollectBlockInstance extends StrategyExecutionInstance
                             items: waitForItemDrop.outputs.itemDrops
                         });
 
-                        this.solveDependency(collectItemDrop, err =>
+                        resolver(collectItemDrop, err =>
                         {
                             if (err)
                             {
