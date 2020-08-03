@@ -5,7 +5,7 @@ export interface ObtainItemsInputs extends DependencyInputs
     /**
      * The item ID to obtain.
      */
-    itemType: number;
+    itemType: string;
 
     /**
      * The number to collect.
@@ -24,7 +24,7 @@ export class ObtainItems implements Dependency
 
     constructor(
         readonly inputs: ObtainItemsInputs = {
-            itemType: 0,
+            itemType: 'air',
             count: 1
         },
         readonly outputs: ObtainItemsOutputs = {

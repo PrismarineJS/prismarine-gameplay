@@ -3,9 +3,9 @@ import { Dependency, DependencyInputs, DependencyOutputs } from "../strategy";
 export interface ObtainItemInputs extends DependencyInputs
 {
     /**
-     * The item ID to obtain.
+     * The item name to obtain.
      */
-    readonly itemType: number;
+    readonly itemType: string;
 }
 
 export interface ObtainItemOutputs extends DependencyOutputs
@@ -19,7 +19,7 @@ export class ObtainItem implements Dependency
 
     constructor(
         readonly inputs: ObtainItemInputs = {
-            itemType: 0
+            itemType: 'air'
         },
         readonly outputs: ObtainItemOutputs = {
         })

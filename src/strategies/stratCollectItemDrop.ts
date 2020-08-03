@@ -9,10 +9,12 @@ import { DependencyResolver } from '../tree';
 
 const { GoalFollow } = require('mineflayer-pathfinder').goals;
 
-function getNearbyItem(bot: Bot, itemId: number): Entity | undefined
+function getNearbyItem(bot: Bot, itemName: string): Entity | undefined
 {
     let closestEntity: Entity | undefined = undefined;
     let distance = -1;
+
+    const itemID = require('minecraft-data')(bot.version).itemsByName[itemName]?.id || -1;
 
     for (let entityName of Object.keys(bot.entities))
     {
@@ -22,7 +24,7 @@ function getNearbyItem(bot: Bot, itemId: number): Entity | undefined
             continue;
 
         // @ts-ignore
-        if (entity.metadata[7]?.itemId !== itemId)
+        if (entity.metadata[7]?.itemId !== itemID)
             continue;
 
         let dist = bot.entity.position.distanceTo(entity.position);
@@ -82,7 +84,7 @@ export class StratCollectItemDrop extends StrategyBase
         return h;
     }
 
-    private calculateHeuristicForItem(itemId: number): number
+    private calculateHeuristicForItem(itemId: string): number
     {
         const entity = getNearbyItem(this.bot, itemId);
 

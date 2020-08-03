@@ -89,9 +89,7 @@ function run (username, message) {
     case /^collect [0-9]+ [a-zA-Z_]+$/.test(message):
       bot.gameplay.solveFor(
         new ObtainItems({
-          itemType: require('minecraft-data')(bot.version).blocksByName[
-            command[2]
-          ].id,
+          itemType: command[2],
           count: parseInt(command[1])
         })
       )
@@ -100,9 +98,7 @@ function run (username, message) {
     case /^collect [a-zA-Z_]+$/.test(message):
       bot.gameplay.solveFor(
         new ObtainItem({
-          itemType: require('minecraft-data')(bot.version).blocksByName[
-            command[1]
-          ].id
+          itemType: command[1]
         })
       )
       break

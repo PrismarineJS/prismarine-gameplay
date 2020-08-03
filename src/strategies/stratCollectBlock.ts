@@ -29,10 +29,11 @@ export class StratCollectBlock extends StrategyBase
         }
     }
 
-    private obtainItemHeuristic(itemType: number, resolver: HeuristicResolver): number
+    private obtainItemHeuristic(itemType: string, resolver: HeuristicResolver): number
     {
+        const blockId = require('minecraft-data')(this.bot.version).blocksByName[itemType]?.id || -1;
         const block = this.bot.findBlock({
-            matching: b => b.type === itemType,
+            matching: b => b.type === blockId,
             maxDistance: 32
         });
 
@@ -130,8 +131,9 @@ class CollectBlockInstance extends StrategyExecutionInstance
 
             case 'obtainItem':
                 const obtainItem = <ObtainItem>dependency;
+                const blockId = require('minecraft-data')(this.bot.version).blocksByName[obtainItem.inputs.itemType]?.id || -1;
                 const position = this.bot.findBlock({
-                    matching: b => b.type === obtainItem.inputs.itemType,
+                    matching: b => b.type === blockId,
                     maxDistance: 32
                 })?.position;
 
