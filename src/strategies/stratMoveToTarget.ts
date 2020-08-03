@@ -1,11 +1,10 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
-import { Movements, Result, Move } from 'mineflayer-pathfinder';
+import { Movements, Result, Move, goals } from 'mineflayer-pathfinder';
 import { MoveTo } from '../dependencies/moveTo';
 import { Vec3 } from 'vec3';
 import { MoveToInteract } from '../dependencies';
 import { DependencyResolver } from '../tree';
-
-const { Goal, GoalNear } = require('mineflayer-pathfinder').goals;
+import { TemporarySubscriber } from '../tempsubscriber';
 
 interface PositionHolder
 {
@@ -29,9 +28,10 @@ export class StratMoveToTarget extends StrategyBase
         switch (dependency.name)
         {
             case 'moveTo':
+                return this.calculateHeuristicForMoveTarget((<MoveTo>dependency).inputs);
+
             case 'moveToInteract':
-                const moveTo = <MoveTo>dependency;
-                return this.calculateHeuristicForMoveTarget(moveTo.inputs);
+                return this.calculateHeuristicForMoveTarget((<MoveToInteract>dependency).inputs.position);
 
             default:
                 return -1;
@@ -57,24 +57,7 @@ class MoveToTargetInstance extends StrategyExecutionInstance
 {
     handle(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
-        let goal = null;
-        let targetPos = null;
-
-        switch (dependency.name)
-        {
-            case 'moveTo':
-                targetPos = (<MoveTo>dependency).inputs;
-                goal = new MoveTargetGoal(targetPos);
-                break;
-
-            case 'moveToInteract':
-                targetPos = (<MoveToInteract>dependency).inputs.position;
-                goal = new GoalNear(targetPos.x, targetPos.y, targetPos.z, 1); // TODO Replace with GoalInteract
-                break;
-
-            default:
-                throw new Error("Unsupported dependency!");
-        }
+        const goal = this.getGoal(dependency);
 
         // TODO Switch to a more stable "isEnd" API
         const node = {
@@ -90,12 +73,7 @@ class MoveToTargetInstance extends StrategyExecutionInstance
 
         // @ts-ignore
         if (this.bot.gameplay.debugText)
-        {
-            const x = targetPos.x === undefined ? '-' : targetPos.x;
-            const y = targetPos.y === undefined ? '-' : targetPos.y;
-            const z = targetPos.z === undefined ? '-' : targetPos.z;
-            console.log(`Moving from ${this.bot.entity.position} to (${x}, ${y}, ${z})`);
-        }
+            console.log(`Moving from ${this.bot.entity.position} to ${goalToString(goal)}`);
 
         // @ts-ignore
         const pathfinder: Pathfinder = this.bot.pathfinder;
@@ -105,39 +83,50 @@ class MoveToTargetInstance extends StrategyExecutionInstance
         pathfinder.setMovements(defaultMove);
         pathfinder.setGoal(goal);
 
-        const bot = this.bot;
-
-        function pathUpdate(results: Result)
+        const sub = new TemporarySubscriber(this.bot);
+        sub.subscribeTo('goal_reached', () =>
         {
-            if (results.status === 'noPath')
-                cleanup(false);
-        }
-
-        function goalReached()
-        {
-            cleanup(true);
-        }
-
-        function cleanup(success: boolean)
-        {
-            // @ts-ignore
-            bot.removeListener('goal_reached', goalReached);
-
-            // @ts-ignore
-            bot.removeListener('path_update', pathUpdate);
-
+            sub.cleanup();
             pathfinder.setGoal(null);
 
-            if (success) cb();
-            else cb(new Error("No path to target!"));
-        }
+            cb();
+        });
 
-        // @ts-ignore
-        this.bot.on('goal_reached', goalReached);
+        sub.subscribeTo('path_update', (results: Result) =>
+        {
+            if (results.status === 'noPath')
+            {
+                sub.cleanup();
+                pathfinder.setGoal(null);
 
-        // @ts-ignore
-        this.bot.on('path_update', pathUpdate);
+                cb(new Error("No path to target!"));
+            }
+        });
     }
+
+    private getGoal(dependency: Dependency): goals.Goal
+    {
+        switch (dependency.name)
+        {
+            case 'moveTo':
+                return new MoveTargetGoal((<MoveTo>dependency).inputs);
+
+            case 'moveToInteract':
+                const targetPos = (<MoveToInteract>dependency).inputs.position;
+                return new goals.GoalNear(targetPos.x, targetPos.y, targetPos.z, 1); // TODO Replace with GoalInteract
+
+            default:
+                throw new Error("Unsupported dependency!");
+        }
+    }
+}
+
+function goalToString(goal: any): string
+{
+    const x = goal.x === undefined ? '-' : goal.x;
+    const y = goal.y === undefined ? '-' : goal.y;
+    const z = goal.z === undefined ? '-' : goal.z;
+    return `(${x}, ${y}, ${z})`;
 }
 
 function distanceXZ(dx: number, dz: number): number
@@ -147,7 +136,7 @@ function distanceXZ(dx: number, dz: number): number
     return Math.abs(dx - dz) + Math.min(dx, dz) * Math.SQRT2;
 }
 
-class MoveTargetGoal extends Goal
+class MoveTargetGoal extends goals.Goal
 {
     readonly moveTarget: PositionHolder;
 
@@ -165,38 +154,23 @@ class MoveTargetGoal extends Goal
 
     heuristic(node: Move): number
     {
-        let dx = 0;
-        let dy = 0;
-        let dz = 0;
-
-        if (this.moveTarget.x !== undefined)
-            dx = Math.abs(this.moveTarget.x - node.x);
-
-        if (this.moveTarget.y !== undefined)
-            dy = Math.abs(this.moveTarget.y - node.y);
-
-        if (this.moveTarget.z !== undefined)
-            dz = Math.abs(this.moveTarget.z - node.z);
-
-        return distanceXZ(dx, dz) + Math.abs(dy);
+        const delta = this.delta(node);
+        return distanceXZ(delta.x, delta.z) + delta.y;
     }
 
     isEnd(node: Move): boolean
     {
-        let dx = 0;
-        let dy = 0;
-        let dz = 0;
-
-        if (this.moveTarget.x !== undefined)
-            dx = Math.abs(this.moveTarget.x - node.x);
-
-        if (this.moveTarget.y !== undefined)
-            dy = Math.abs(this.moveTarget.y - node.y);
-
-        if (this.moveTarget.z !== undefined)
-            dz = Math.abs(this.moveTarget.z - node.z);
-
+        const delta = this.delta(node);
         const range = this.moveTarget.range !== undefined ? this.moveTarget.range : 0.5;
-        return Math.sqrt(dx * dx + dy * dy + dz * dz) <= range;
+        return Math.sqrt(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z) <= range;
+    }
+
+    private delta(node: Move): Vec3
+    {
+        return new Vec3(
+            this.moveTarget.x !== undefined ? Math.abs(this.moveTarget.x - node.x) : 0,
+            this.moveTarget.y !== undefined ? Math.abs(this.moveTarget.y - node.y) : 0,
+            this.moveTarget.z !== undefined ? Math.abs(this.moveTarget.z - node.z) : 0
+        );
     }
 }
