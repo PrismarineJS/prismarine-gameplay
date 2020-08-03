@@ -1,6 +1,5 @@
 const mineflayer = require('mineflayer')
 const pathfinder = require('mineflayer-pathfinder').pathfinder
-const mineflayerViewer = require('prismarine-viewer').mineflayer
 const {
   gameplay,
   MoveTo,
@@ -8,7 +7,6 @@ const {
   ObtainItems,
   ObtainItem
 } = require('prismarine-gameplay')
-const readline = require('readline')
 const { Vec3 } = require('vec3')
 
 if (process.argv.length < 4 || process.argv.length > 6) {
@@ -25,14 +23,6 @@ const bot = mineflayer.createBot({
 
 bot.loadPlugin(pathfinder)
 bot.loadPlugin(gameplay)
-
-bot.once('spawn', () => {
-  mineflayerViewer(bot, { firstPerson: true, port: 3000 })
-  bot.gameplay.debugText = true
-})
-
-// const ChatMessage = require('prismarine-chat')('1.16')
-// bot.on('message', message => console.log(new ChatMessage(message).toString()))
 
 bot.on('chat', (username, message) => run(username, message))
 
@@ -108,18 +98,3 @@ function run (username, message) {
       break
   }
 }
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-})
-
-function consoleInput () {
-  rl.question('> ', function (message) {
-    bot.chat(message)
-    run(message)
-    consoleInput()
-  })
-}
-
-consoleInput()
