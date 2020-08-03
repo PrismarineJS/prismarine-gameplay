@@ -178,22 +178,22 @@ class CollectItemDropInstance extends StrategyExecutionInstance
             if (e !== entity)
                 return;
 
-            cleanup(false);
+            cleanup("Entity disappeared!");
         }
 
         function pathUpdate(results: Result)
         {
             if (results.status === 'noPath')
-                cleanup(false);
+                cleanup("No path to entity!");
         }
 
         function playerCollect(collector: Entity, item: Entity): void
         {
             if (collector === bot.entity && item === entity)
-                cleanup(true);
+                cleanup();
         }
 
-        function cleanup(success: boolean)
+        function cleanup(errMessage?: string)
         {
             bot.removeListener('entityGone', entityGone);
             bot.removeListener('playerCollect', playerCollect);
@@ -203,8 +203,8 @@ class CollectItemDropInstance extends StrategyExecutionInstance
 
             pathfinder.setGoal(null);
 
-            if (success) cb();
-            else cb(new Error("Failed to collect item!"));
+            if (errMessage) cb(new Error(errMessage));
+            else cb();
         }
 
         this.bot.on('entityGone', entityGone);

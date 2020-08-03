@@ -135,10 +135,10 @@ class DependencyTreeData implements TreeData
             childIndex++;
 
             tree.addChild(childTree);
-            childTree.execute(() =>
+            childTree.execute(err =>
             {
-                if (childTree.status === ExecutionStatus.Success) cb();
-                else attemptNext();
+                if (err) attemptNext();
+                else cb();
             });
         };
 
