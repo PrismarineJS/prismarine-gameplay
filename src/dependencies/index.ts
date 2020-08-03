@@ -6,3 +6,4 @@ export * from './breakBlock';
 export * from './collectBlock';
 export * from './collectItemDrop';
 export * from './obtainItems';
+export * from './selectBestTool';

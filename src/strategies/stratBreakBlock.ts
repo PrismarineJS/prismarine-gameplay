@@ -1,11 +1,11 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
 import { BreakBlock } from '../dependencies/breakBlock';
-import { MoveToInteract } from '../dependencies';
+import { MoveToInteract, SelectBestTool } from '../dependencies';
 
 // @ts-ignore
 import nbt from 'prismarine-nbt';
 import { HeuristicResolver, DependencyResolver } from '../tree';
-import { TaskQueue, Task } from '../taskqueue';
+import { TaskQueue } from '../taskqueue';
 
 export class StratBreakBlock extends StrategyBase
 {
@@ -83,22 +83,23 @@ class BreakBlockInstance extends StrategyExecutionInstance
             throw new Error("Unsupported dependency!");
 
         const position = (<BreakBlock>dependency).inputs.position;
+        const block = this.bot.blockAt(position);
+
+        if (!block)
+            throw new Error(`Cannot break block at ${position} in unloaded chunk!`);
 
         const moveToInteract = new MoveToInteract({
             position: position
         });
 
-        const breakBlock: Task = cb =>
-        {
-            const block = this.bot.blockAt(position);
-
-            if (block) this.bot.dig(block, cb);
-            else cb(new Error(`Cannot break block at ${position} in unloaded chunk!`));
-        }
+        const selectBestTool = new SelectBestTool({
+            block: block
+        });
 
         const taskQueue = new TaskQueue();
         taskQueue.addTask(cb => resolver(moveToInteract, cb));
-        taskQueue.addTask(cb => breakBlock(cb));
+        taskQueue.addTask(cb => resolver(selectBestTool, cb));
+        taskQueue.addTask(cb => this.bot.dig(block, cb));
         taskQueue.runAll(cb);
     }
 }
