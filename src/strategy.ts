@@ -64,7 +64,7 @@ export class Solver
             if (strategy === caller)
                 continue;
 
-            const h = strategy.estimateHeuristic(dependency, this.fastHeuristic);
+            const h = strategy.estimateHeuristic(dependency, (dep) => this.fastHeuristic(dep));
             if (h < 0)
                 continue;
 
