@@ -78,6 +78,18 @@ class MoveToTargetInstance extends StrategyExecutionInstance
                     throw new Error("Unsupported dependency!");
             }
 
+            // TODO Switch to a more stable "isEnd" API
+            const node = {
+                x: Math.floor(this.bot.entity.position.x),
+                y: Math.floor(this.bot.entity.position.y),
+                z: Math.floor(this.bot.entity.position.z),
+            };
+            if (goal.isEnd(node))
+            {
+                cb();
+                return
+            }
+
             // @ts-ignore
             if (this.bot.gameplay.debugText)
             {
