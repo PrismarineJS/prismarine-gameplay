@@ -5,6 +5,7 @@ import { MoveToInteract } from '../dependencies';
 // @ts-ignore
 import nbt from 'prismarine-nbt';
 import { HeuristicResolver, DependencyResolver } from '../tree';
+import { TaskQueue, Task } from '../taskqueue';
 
 export class StratBreakBlock extends StrategyBase
 {
@@ -81,22 +82,23 @@ class BreakBlockInstance extends StrategyExecutionInstance
         if (dependency.name !== 'breakBlock')
             throw new Error("Unsupported dependency!");
 
-        const breakBlock = <BreakBlock>dependency;
+        const position = (<BreakBlock>dependency).inputs.position;
 
-        resolver(new MoveToInteract({
-            position: breakBlock.inputs.position
-        }), err =>
+        const moveToInteract = new MoveToInteract({
+            position: position
+        });
+
+        const breakBlock: Task = cb =>
         {
-            if (err)
-            {
-                cb(err);
-                return;
-            }
-
-            const block = this.bot.blockAt(breakBlock.inputs.position);
+            const block = this.bot.blockAt(position);
 
             if (block) this.bot.dig(block, cb);
-            else cb(new Error(`Cannot break block at ${breakBlock.inputs.position} in unloaded chunk!`));
-        });
+            else cb(new Error(`Cannot break block at ${position} in unloaded chunk!`));
+        }
+
+        const taskQueue = new TaskQueue();
+        taskQueue.addTask(cb => resolver(moveToInteract, cb));
+        taskQueue.addTask(cb => breakBlock(cb));
+        taskQueue.runAll(cb);
     }
 }
