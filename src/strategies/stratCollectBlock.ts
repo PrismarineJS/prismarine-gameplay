@@ -3,6 +3,7 @@ import { CollectBlock, MoveToInteract, BreakBlock, WaitForItemDrop, ObtainItem }
 import { CollectItemDrops } from "../dependencies/collectItemDrop";
 import { Vec3 } from "vec3";
 import { DependencyResolver, HeuristicResolver } from "../tree";
+import { TaskQueue } from "../taskqueue";
 
 export class StratCollectBlock extends StrategyBase
 {
@@ -90,18 +91,46 @@ class CollectBlockInstance extends StrategyExecutionInstance
 {
     handle(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
-        let position: Vec3;
+        const position = this.getBlockPosition(dependency);
 
+        const moveToInteract = new MoveToInteract({
+            position: position
+        });
+
+        const breakBlock = new BreakBlock({
+            position: position
+        });
+
+        const waitForItemDrop = new WaitForItemDrop({
+            position: position,
+            maxDistance: 1,
+            maxTicks: 10,
+            groupItems: true
+        });
+
+        const collectItemDrop = new CollectItemDrops({
+            items: waitForItemDrop.outputs.itemDrops
+        });
+
+        const taskQueue = new TaskQueue();
+        taskQueue.addTask(cb => resolver(moveToInteract, cb));
+        taskQueue.addTask(cb => resolver(breakBlock, cb));
+        taskQueue.addTask(cb => resolver(waitForItemDrop, cb));
+        taskQueue.addTask(cb => resolver(collectItemDrop, cb));
+        taskQueue.runAll(cb);
+    }
+
+    private getBlockPosition(dependency: Dependency): Vec3
+    {
         switch (dependency.name)
         {
             case 'collectBlock':
                 const collectBlock = <CollectBlock>dependency;
-                position = collectBlock.inputs.position;
-                break;
+                return collectBlock.inputs.position;
 
             case 'obtainItem':
                 const obtainItem = <ObtainItem>dependency;
-                position = this.bot.findBlock({
+                const position = this.bot.findBlock({
                     matching: b => b.type === obtainItem.inputs.itemType,
                     maxDistance: 32
                 })?.position;
@@ -109,64 +138,10 @@ class CollectBlockInstance extends StrategyExecutionInstance
                 if (!position)
                     throw new Error("Cannot find block!");
 
-                break;
+                return position;
 
             default:
                 throw new Error("Unsupported dependency!");
         }
-
-
-        resolver(new MoveToInteract({
-            position: position
-        }), err =>
-        {
-            if (err)
-            {
-                cb(err);
-                return;
-            }
-
-            resolver(new BreakBlock({
-                position: position
-            }), err =>
-            {
-                if (err)
-                {
-                    cb(err);
-                    return;
-                }
-
-                const waitForItemDrop = new WaitForItemDrop({
-                    position: position,
-                    maxDistance: 1,
-                    maxTicks: 10,
-                    groupItems: true
-                });
-
-                resolver(waitForItemDrop, err =>
-                {
-                    if (err)
-                    {
-                        cb(err);
-                        return;
-                    }
-
-                    const collectItemDrop = new CollectItemDrops({
-                        items: waitForItemDrop.outputs.itemDrops
-                    });
-
-                    resolver(collectItemDrop, err =>
-                    {
-                        if (err)
-                        {
-                            cb(err);
-                            return;
-                        }
-
-                        cb();
-                    });
-                });
-            })
-        });
     }
 }

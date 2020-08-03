@@ -245,6 +245,8 @@ export class Tree
             throw new Error('Tree node already executed!');
 
         this._status = ExecutionStatus.Running;
+        this.printSpam();
+
         this.data.execute(this, err =>
         {
             if (err)
@@ -255,12 +257,7 @@ export class Tree
             else
                 this._status = ExecutionStatus.Success;
 
-            if (this.debugMode)
-            {
-                console.log("==================================================================");
-                this.root.printDebug();
-                console.log("==================================================================");
-            }
+            this.printSpam();
 
             if (cb)
                 cb(err);
@@ -272,12 +269,17 @@ export class Tree
         this.children.push(tree);
         tree.parent = this;
 
-        if (this.debugMode)
-        {
-            console.log("==================================================================");
-            this.root.printDebug();
-            console.log("==================================================================");
-        }
+        this.printSpam();
+    }
+
+    private printSpam(): void
+    {
+        if (!this.root.debugMode)
+            return;
+
+        console.log("==================================================================");
+        this.root.printDebug();
+        console.log("==================================================================");
     }
 }
 
