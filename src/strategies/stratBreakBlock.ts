@@ -82,7 +82,8 @@ class BreakBlockInstance extends StrategyExecutionInstance
         if (dependency.name !== 'breakBlock')
             throw new Error("Unsupported dependency!");
 
-        const position = (<BreakBlock>dependency).inputs.position;
+        const breakBlock = <BreakBlock>dependency;
+        const position = breakBlock.inputs.position;
         const block = this.bot.blockAt(position);
 
         if (!block)
@@ -92,9 +93,21 @@ class BreakBlockInstance extends StrategyExecutionInstance
             position: position
         });
 
-        const selectBestTool = new SelectBestTool({
-            block: block
-        });
+        const requiredDrop = breakBlock.inputs.requiredDrop;
+
+        let toolOptions;
+        if (requiredDrop)
+            toolOptions = {
+                block: block,
+                requiredDrop: requiredDrop,
+                craftIfNeeded: true
+            }
+        else
+            toolOptions = {
+                block: block
+            }
+
+        const selectBestTool = new SelectBestTool(toolOptions);
 
         const taskQueue = new TaskQueue();
         taskQueue.addTask(cb => resolver(moveToInteract, cb));

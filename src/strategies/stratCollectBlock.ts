@@ -4,6 +4,65 @@ import { CollectItemDrops } from "../dependencies/collectItemDrop";
 import { Vec3 } from "vec3";
 import { DependencyResolver, HeuristicResolver } from "../tree";
 import { TaskQueue } from "../taskqueue";
+import { Bot } from "mineflayer";
+
+function getBlockPosition(dependency: Dependency, bot: Bot): Vec3
+{
+    switch (dependency.name)
+    {
+        case 'collectBlock':
+            const collectBlock = <CollectBlock>dependency;
+            return collectBlock.inputs.position;
+
+        case 'obtainItem':
+            const obtainItem = <ObtainItem>dependency;
+            const blockId = require('minecraft-data')(bot.version).blocksByName[obtainItem.inputs.itemType]?.id || -1;
+            const position = bot.findBlock({
+                matching: b => b.type === blockId,
+                maxDistance: 32
+            })?.position;
+
+            if (!position)
+                throw new Error("Cannot find block!");
+
+            return position;
+
+        default:
+            throw new Error("Unsupported dependency!");
+    }
+}
+
+function getRequiredDrop(dependency: Dependency): string | undefined
+{
+    switch (dependency.name)
+    {
+        case 'collectBlock':
+            const collectBlock = <CollectBlock>dependency;
+            return collectBlock.inputs.requiredDrop;
+
+        case 'obtainItem':
+            const obtainItem = <ObtainItem>dependency;
+            return obtainItem.inputs.itemType;
+
+        default:
+            throw new Error("Unsupported dependency!");
+    }
+}
+
+function estimateDistance(dependency: Dependency, bot: Bot): number
+{
+    const position = getBlockPosition(dependency, bot);
+
+    let distance = bot.entity.position.distanceTo(position);
+    distance *= 1.2; // 20% for pathfinding around stuff
+    distance *= 10; // Estimates 10 ticks per block movement
+
+    // Assume it'll take as long to collect the block as it does to get there.
+    // Help account for things like crafting the item if needed.
+    distance *= 2;
+
+    return distance;
+}
 
 export class StratCollectBlock extends StrategyBase
 {
@@ -19,72 +78,12 @@ export class StratCollectBlock extends StrategyBase
         switch (dependency.name)
         {
             case 'collectBlock':
-                return this.collectBlockHeuristic((<CollectBlock>dependency).inputs.position, resolver);
-
             case 'obtainItem':
-                return this.obtainItemHeuristic((<ObtainItem>dependency).inputs.itemType, resolver);
+                return estimateDistance(dependency, this.bot);
 
             default:
                 return -1;
         }
-    }
-
-    private obtainItemHeuristic(itemType: string, resolver: HeuristicResolver): number
-    {
-        const blockId = require('minecraft-data')(this.bot.version).blocksByName[itemType]?.id || -1;
-        const block = this.bot.findBlock({
-            matching: b => b.type === blockId,
-            maxDistance: 32
-        });
-
-        if (!block)
-            return -1;
-
-        let distance = this.bot.entity.position.distanceTo(block.position);
-        distance *= 1.2; // 20% for pathfinding around stuff
-        distance *= 10; // Estimates 10 ticks per block movement
-
-        const collectH = this.collectBlockHeuristic(block.position, resolver);
-        return this.addH(distance, collectH);
-    }
-
-    private collectBlockHeuristic(position: Vec3, resolver: HeuristicResolver): number
-    {
-        let h = 0;
-
-        const moveToInteract = new MoveToInteract({
-            position: position
-        });
-
-        const breakBlock = new BreakBlock({
-            position: position
-        });
-
-        const waitForItemDrop = new WaitForItemDrop({
-            position: position,
-            maxDistance: 1,
-            maxTicks: 10,
-            groupItems: true
-        });
-
-        const collectItemDrop = new CollectItemDrops({
-            items: []
-        });
-
-        h = this.addH(h, resolver(moveToInteract));
-        h = this.addH(h, resolver(breakBlock));
-        h = this.addH(h, resolver(waitForItemDrop));
-        h = this.addH(h, resolver(collectItemDrop));
-
-        return h;
-    }
-
-    private addH(h: number, v: number): number
-    {
-        if (h < 0 || v < 0)
-            return -1;
-
-        return h + v;
     }
 }
 
@@ -92,14 +91,16 @@ class CollectBlockInstance extends StrategyExecutionInstance
 {
     handle(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
-        const position = this.getBlockPosition(dependency);
+        const position = getBlockPosition(dependency, this.bot);
+        const requiredDrop = getRequiredDrop(dependency);
 
         const moveToInteract = new MoveToInteract({
             position: position
         });
 
         const breakBlock = new BreakBlock({
-            position: position
+            position: position,
+            requiredDrop: requiredDrop
         });
 
         const waitForItemDrop = new WaitForItemDrop({
@@ -119,31 +120,5 @@ class CollectBlockInstance extends StrategyExecutionInstance
         taskQueue.addTask(cb => resolver(waitForItemDrop, cb));
         taskQueue.addTask(cb => resolver(collectItemDrop, cb));
         taskQueue.runAll(cb);
-    }
-
-    private getBlockPosition(dependency: Dependency): Vec3
-    {
-        switch (dependency.name)
-        {
-            case 'collectBlock':
-                const collectBlock = <CollectBlock>dependency;
-                return collectBlock.inputs.position;
-
-            case 'obtainItem':
-                const obtainItem = <ObtainItem>dependency;
-                const blockId = require('minecraft-data')(this.bot.version).blocksByName[obtainItem.inputs.itemType]?.id || -1;
-                const position = this.bot.findBlock({
-                    matching: b => b.type === blockId,
-                    maxDistance: 32
-                })?.position;
-
-                if (!position)
-                    throw new Error("Cannot find block!");
-
-                return position;
-
-            default:
-                throw new Error("Unsupported dependency!");
-        }
     }
 }

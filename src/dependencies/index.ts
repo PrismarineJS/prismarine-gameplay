@@ -7,3 +7,4 @@ export * from './collectBlock';
 export * from './collectItemDrop';
 export * from './obtainItems';
 export * from './selectBestTool';
+export * from './craft';
