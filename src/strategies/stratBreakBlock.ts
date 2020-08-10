@@ -5,7 +5,7 @@ import { MoveToInteract, SelectBestTool } from '../dependencies';
 // @ts-ignore
 import nbt from 'prismarine-nbt';
 import { HeuristicResolver, DependencyResolver } from '../tree';
-import { TaskQueue } from '../taskqueue';
+import { TaskQueue } from 'mineflayer-utils';
 
 export class StratBreakBlock extends StrategyBase
 {
@@ -54,17 +54,17 @@ export class StratBreakBlock extends StrategyBase
 
         // TODO Shouldn't tool selection and time estimate be saved for a child task?
 
-        // @ts-ignore
+        // @ts-expect-error
         const effects = this.bot.entity.effects;
 
-        // @ts-ignore
+        // @ts-expect-error
         let fastest = block.digTime(null, false, false, false, [], effects);
 
         for (const tool of this.bot.inventory.items())
         {
             const enchants = (tool && tool.nbt) ? nbt.simplify(tool.nbt).Enchantments : []
 
-            // @ts-ignore
+            // @ts-expect-error
             const digTime = block.digTime(tool ? tool.type : null, false, false, false, enchants, effects);
 
             if (digTime < fastest)
@@ -110,9 +110,9 @@ class BreakBlockInstance extends StrategyExecutionInstance
         const selectBestTool = new SelectBestTool(toolOptions);
 
         const taskQueue = new TaskQueue();
-        taskQueue.addTask(cb => resolver(moveToInteract, cb));
-        taskQueue.addTask(cb => resolver(selectBestTool, cb));
-        taskQueue.addTask(cb => this.bot.dig(block, cb));
+        taskQueue.add(cb => resolver(moveToInteract, cb));
+        taskQueue.add(cb => resolver(selectBestTool, cb));
+        taskQueue.add(cb => this.bot.dig(block, cb));
         taskQueue.runAll(cb);
     }
 }

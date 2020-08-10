@@ -36,6 +36,7 @@
     "minecraft-data": "^2.63.0",
     "mineflayer": "^2.25.0",
     "mineflayer-pathfinder": "^1.0.10",
+    "mineflayer-utils": "^0.1.2",
     "prismarine-block": "^1.7.1",
     "prismarine-chat": "^1.0.2",
     "prismarine-entity": "^1.0.0",

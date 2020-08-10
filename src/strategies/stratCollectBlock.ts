@@ -3,7 +3,7 @@ import { CollectBlock, MoveToInteract, BreakBlock, WaitForItemDrop, ObtainItem }
 import { CollectItemDrops } from "../dependencies/collectItemDrop";
 import { Vec3 } from "vec3";
 import { DependencyResolver, HeuristicResolver } from "../tree";
-import { TaskQueue } from "../taskqueue";
+import { TaskQueue } from "mineflayer-utils";
 import { Bot } from "mineflayer";
 
 function getBlockPosition(dependency: Dependency, bot: Bot): Vec3
@@ -115,10 +115,10 @@ class CollectBlockInstance extends StrategyExecutionInstance
         });
 
         const taskQueue = new TaskQueue();
-        taskQueue.addTask(cb => resolver(moveToInteract, cb));
-        taskQueue.addTask(cb => resolver(breakBlock, cb));
-        taskQueue.addTask(cb => resolver(waitForItemDrop, cb));
-        taskQueue.addTask(cb => resolver(collectItemDrop, cb));
+        taskQueue.add(cb => resolver(moveToInteract, cb));
+        taskQueue.add(cb => resolver(breakBlock, cb));
+        taskQueue.add(cb => resolver(waitForItemDrop, cb));
+        taskQueue.add(cb => resolver(collectItemDrop, cb));
         taskQueue.runAll(cb);
     }
 }

@@ -4,7 +4,7 @@ import { MoveTo } from '../dependencies/moveTo';
 import { Vec3 } from 'vec3';
 import { MoveToInteract } from '../dependencies';
 import { DependencyResolver } from '../tree';
-import { TemporarySubscriber } from '../tempsubscriber';
+import { TemporarySubscriber } from 'mineflayer-utils';
 
 interface PositionHolder
 {
