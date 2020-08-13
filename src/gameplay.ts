@@ -1,19 +1,19 @@
 import { Solver, Dependency, StrategyBase } from "./strategy"
 import { Bot } from "mineflayer"
 import { Callback } from "./strategy";
-import * from "./strategies";
+import * as strats from "./strategies";
 import { createTree } from "./tree";
 
 function loadDefaultStrategies(gameplay: Gameplay): void
 {
-    gameplay.loadStrategy(new StratCollectItemDrop(gameplay.solver));
-    gameplay.loadStrategy(new StratMoveToTarget(gameplay.solver));
-    gameplay.loadStrategy(new StratWaitForItemDrop(gameplay.solver));
-    gameplay.loadStrategy(new StratBreakBlock(gameplay.solver));
-    gameplay.loadStrategy(new StratCollectBlock(gameplay.solver));
-    gameplay.loadStrategy(new StratCollectResources(gameplay.solver));
-    gameplay.loadStrategy(new StratSelectBestTool(gameplay.solver));
-    gameplay.loadStrategy(new StratCraftItem(gameplay.solver));
+    gameplay.loadStrategy(new strats.StratCollectItemDrop(gameplay.solver));
+    gameplay.loadStrategy(new strats.StratMoveToTarget(gameplay.solver));
+    gameplay.loadStrategy(new strats.StratWaitForItemDrop(gameplay.solver));
+    gameplay.loadStrategy(new strats.StratBreakBlock(gameplay.solver));
+    gameplay.loadStrategy(new strats.StratCollectBlock(gameplay.solver));
+    gameplay.loadStrategy(new strats.StratCollectResources(gameplay.solver));
+    gameplay.loadStrategy(new strats.StratSelectBestTool(gameplay.solver));
+    gameplay.loadStrategy(new strats.StratCraftItem(gameplay.solver));
 }
 
 /**

@@ -2,6 +2,7 @@ import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver }
 import { DependencyResolver } from '../tree';
 import { MoveToInteract } from '../dependencies';
 import { TaskQueue } from 'mineflayer-utils';
+import { Craft } from '../dependencies/craft';
 
 export class StratCraftItem extends StrategyBase
 {
@@ -33,8 +34,8 @@ class CraftItemInstance extends StrategyExecutionInstance
             throw new Error("Unsupported dependency!");
 
         const mcData = require('minecraft-data')(this.bot.version)
-        const craftItemTask = <CraftItem>dependency;
-        const itemId = mcData.itemsByName[craftItemTask.itemType].id
+        const craftItemTask = <Craft>dependency;
+        const itemId = mcData.itemsByName[craftItemTask.inputs.itemType].id
 
         // @ts-expect-error
         const recipeList = this.bot.recipesAll(itemId, null, true);
@@ -56,7 +57,7 @@ class CraftItemInstance extends StrategyExecutionInstance
 
         const taskQueue = new TaskQueue();
         taskQueue.add(cb => resolver(moveToCraftingTable, cb));
-        taskQueue.add(cb => this.bot.craft(recipeList[0], craftItemTask.count, craftingTable, cb))
+        taskQueue.add(cb => this.bot.craft(recipeList[0], craftItemTask.inputs.count, craftingTable, cb))
         taskQueue.runAll(cb);
     }
 }

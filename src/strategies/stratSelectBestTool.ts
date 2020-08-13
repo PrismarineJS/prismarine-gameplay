@@ -70,7 +70,7 @@ function selectBestTool(block: Block, bot: Bot, requiredDrop?: string): [Item | 
     else return [null, true];
 }
 
-function estimateBestToolToCraft(): string
+function estimateBestToolToCraft(block: Block, requiredDrop: string): string
 {
     // TODO
     return '';
@@ -115,7 +115,7 @@ class SelectBestToolInstance extends StrategyExecutionInstance
         if (!canCollect)
         {
             const craft = new Craft({
-                itemType: estimateBestToolToCraft(),
+                itemType: estimateBestToolToCraft(block, tool),
                 count: 1
             });
 
