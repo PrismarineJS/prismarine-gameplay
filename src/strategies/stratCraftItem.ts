@@ -27,12 +27,69 @@ export class StratCraftItem extends StrategyBase
     }
 }
 
+interface RecipeIngredient
+{
+    id: number;
+    count: number;
+}
+
 class CraftItemInstance extends StrategyExecutionInstance
 {
+    getRequireIngredients(recipe: Recipe): RecipeIngredient[]
+    {
+        const ingredients: RecipeIngredient[] = [];
+
+        function addOrPut(id?: number): void
+        {
+            if (id === undefined || id === null)
+                return;
+
+            for (const ingredient of ingredients)
+            {
+                if (ingredient.id === id)
+                {
+                    ingredient.count++;
+                    return;
+                }
+            }
+
+            ingredients.push({
+                id: id,
+                count: 1
+            });
+        }
+
+        if (recipe.inShape) 
+        {
+            for (const row of recipe.inShape)
+            {
+                for (const col of row)
+                    addOrPut(<number><unknown>col)
+            }
+        }
+        else
+        {
+            for (const item of recipe.ingredients)
+                addOrPut(<number><unknown>item)
+        }
+
+        return ingredients;
+    }
+
     canCraft(recipe: Recipe): boolean
     {
-        // TODO check materials in inventory
-        return false
+        const ingredients = this.getRequireIngredients(recipe);
+
+        for (const item of this.bot.inventory.items())
+        {
+            for (const ingredient of ingredients)
+            {
+                if (item.type === ingredient.id)
+                    ingredient.count -= item.count;
+            }
+        }
+
+        return ingredients.filter(x => x.count > 0).length === 0;
     }
 
     prepareRecipe(recipes: Recipe[], cb: (err?: Error, recipe?: Recipe) => void): void
