@@ -25,14 +25,27 @@ function estimateCraftTime(dependency: Dependency): number
     }
 }
 
-function getDrops(block: Block, item?: Item, enchantments?: Enchantment[]): string[]
+function toolListContains(toolList: ItemToEquip[], item: Item): boolean
 {
-    // TODO
+    const enchants = (tool && tool.nbt) ? nbt.simplify(tool.nbt).Enchantments : [];
+    const silkTouchId = 0
+    const hasSilkTouch = enchantments.find(x => x.id === silkTouchId) !== undefined;
 
-    return [];
+    for (const l of toolList)
+    {
+        if (l.name !== item.name)
+            continue;
+        
+        if (l.silkTouch !== hasSilkTouch)
+            continue;
+
+        return true;
+    }
+
+    return false;
 }
 
-function selectBestTool(block: Block, bot: Bot, requiredDrop?: string): [Item | null, boolean]
+function selectBestTool(block: Block, bot: Bot, toolList: ItemToEquip[]): Item | null
 {
     const availableTools = bot.inventory.items();
 
@@ -44,13 +57,10 @@ function selectBestTool(block: Block, bot: Bot, requiredDrop?: string): [Item | 
     let bestTool = null;
     for (const tool of availableTools)
     {
-        const enchants = (tool && tool.nbt) ? nbt.simplify(tool.nbt).Enchantments : [];
+        if (!toolListContains(toolList, tool))
+            continue;
 
-        if (requiredDrop)
-        {
-            if (getDrops(block, tool, enchants).indexOf(requiredDrop) < 0)
-                continue;
-        }
+        const enchants = (tool && tool.nbt) ? nbt.simplify(tool.nbt).Enchantments : [];
 
         // TODO Add digTime(6 args) to block *.d.ts
         // @ts-expect-error
@@ -63,17 +73,63 @@ function selectBestTool(block: Block, bot: Bot, requiredDrop?: string): [Item | 
         }
     }
 
-    if (bestTool)
-        return [bestTool, true];
-
-    if (requiredDrop) return [null, getDrops(block).indexOf(requiredDrop) >= 0];
-    else return [null, true];
+    return bestTool;
 }
 
-function estimateBestToolToCraft(block: Block, requiredDrop: string): string
+function estimateBestToolToCraft(mcData: any, block: Block, requiredDrop?: string): string
 {
     // TODO
     return '';
+}
+
+interface ItemToEquip
+{
+    name: string;
+    silkTouch: boolean;
+}
+
+function getHarvestTools(mcData: any, block: Block): ItemToEquip[]
+{
+    const harvestTools: number[] = mcData.blocksByName[block.name].harvestTools;
+    const tools = [];
+
+    for (const t of harvestTools)
+    {
+        const itemData = mcData.items[t];
+        tools.push({
+            name: itemData.name,
+            silkTouch: false
+        });
+        tools.push({
+            name: itemData.name,
+            silkTouch: true
+        });
+    }
+
+    return tools;
+}
+
+function getRequiredToolsFor(mcData: any, block: Block, requiredDrop?: string): ItemToEquip[]
+{
+    let tools = getHarvestTools(mcData, block);
+
+    if (requiredDrop)
+    {
+        const blockLoot = mcData.blockLoot[block.name].drops;
+        for (const drop of blockLoot)
+        {
+            if (drop.item !== requiredDrop)
+                continue;
+
+            if (drop.silkTouch)
+                tools = tools.filter(t => t.silkTouch === false)
+
+            if (drop.noSilkTouch)
+                tools = tools.filter(t => t.silkTouch === true)
+        }
+    }
+
+    return tools
 }
 
 export class StratSelectBestTool extends StrategyBase
@@ -105,9 +161,14 @@ class SelectBestToolInstance extends StrategyExecutionInstance
         if (dependency.name !== 'selectBestTool')
             throw new Error("Unsupported dependency!");
 
-        const block = (<SelectBestTool>dependency).inputs.block;
+        const selectBestToolTask = <SelectBestTool>dependency;
+        const block = selectBestToolTask.inputs.block;
+        const requiredDrop = selectBestToolTask.inputs.requiredDrop;
 
-        const items = selectBestTool(block, this.bot);
+        const mcData = require('minecraft-data')(this.bot.version);
+        const toolList = getRequiredToolsFor(mcData, block, requiredDrop);
+
+        const items = selectBestTool(block, this.bot, toolList);
 
         const tool = items[0];
         const canCollect = items[1];
@@ -115,7 +176,7 @@ class SelectBestToolInstance extends StrategyExecutionInstance
         if (!canCollect)
         {
             const craft = new Craft({
-                itemType: estimateBestToolToCraft(block, tool),
+                itemType: toolList[0], // TODO Replace with "OR" task group
                 count: 1
             });
 

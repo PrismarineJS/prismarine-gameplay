@@ -37,7 +37,6 @@ class CraftItemInstance extends StrategyExecutionInstance
         const craftItemTask = <Craft>dependency;
         const itemId = mcData.itemsByName[craftItemTask.inputs.itemType].id
 
-        // @ts-expect-error
         const recipeList = this.bot.recipesAll(itemId, null, true);
 
         if (recipeList.length === 0)
