@@ -25,11 +25,22 @@ function estimateCraftTime(dependency: Dependency): number
     }
 }
 
-function toolListContains(toolList: ItemToEquip[], item: Item): boolean
+function toolListContains(mcData: any, toolList: ItemListEquip, item: Item): boolean
 {
-    const enchants = (tool && tool.nbt) ? nbt.simplify(tool.nbt).Enchantments : [];
-    const silkTouchId = 0
-    const hasSilkTouch = enchantments.find(x => x.id === silkTouchId) !== undefined;
+    if (toolList === 'all')
+        return true;
+
+    const enchants: Enchantment[] = (item && item.nbt) ? nbt.simplify(item.nbt).Enchantments : [];
+    const silkTouchId = mcData.enchantmentsByName.silk_touch.id
+
+    // @ts-ignore
+    const hasSilkTouch = enchants.find(x => x.id === silkTouchId) !== undefined;
+
+    if (toolList === 'all_silkTouch')
+        return hasSilkTouch;
+
+    if (toolList === 'all_noSilkTouch')
+        return !hasSilkTouch;
 
     for (const l of toolList)
     {
@@ -45,7 +56,7 @@ function toolListContains(toolList: ItemToEquip[], item: Item): boolean
     return false;
 }
 
-function selectBestTool(block: Block, bot: Bot, toolList: ItemToEquip[]): Item | null
+function selectBestTool(mcData: any, block: Block, bot: Bot, toolList: ItemListEquip): Item | null
 {
     const availableTools = bot.inventory.items();
 
@@ -57,7 +68,7 @@ function selectBestTool(block: Block, bot: Bot, toolList: ItemToEquip[]): Item |
     let bestTool = null;
     for (const tool of availableTools)
     {
-        if (!toolListContains(toolList, tool))
+        if (!toolListContains(mcData, toolList, tool))
             continue;
 
         const enchants = (tool && tool.nbt) ? nbt.simplify(tool.nbt).Enchantments : [];
@@ -76,21 +87,21 @@ function selectBestTool(block: Block, bot: Bot, toolList: ItemToEquip[]): Item |
     return bestTool;
 }
 
-function estimateBestToolToCraft(mcData: any, block: Block, requiredDrop?: string): string
-{
-    // TODO
-    return '';
-}
-
 interface ItemToEquip
 {
     name: string;
     silkTouch: boolean;
 }
 
-function getHarvestTools(mcData: any, block: Block): ItemToEquip[]
+type ItemListEquip = ItemToEquip[] | 'all' | 'all_silkTouch' | 'all_noSilkTouch'
+
+function getHarvestTools(mcData: any, block: Block): ItemListEquip
 {
     const harvestTools: number[] = mcData.blocksByName[block.name].harvestTools;
+
+    if (!harvestTools)
+        return 'all';
+
     const tools = [];
 
     for (const t of harvestTools)
@@ -109,7 +120,7 @@ function getHarvestTools(mcData: any, block: Block): ItemToEquip[]
     return tools;
 }
 
-function getRequiredToolsFor(mcData: any, block: Block, requiredDrop?: string): ItemToEquip[]
+function getRequiredToolsFor(mcData: any, block: Block, requiredDrop?: string): ItemListEquip
 {
     let tools = getHarvestTools(mcData, block);
 
@@ -121,10 +132,18 @@ function getRequiredToolsFor(mcData: any, block: Block, requiredDrop?: string): 
             if (drop.item !== requiredDrop)
                 continue;
 
+            if (tools === 'all' && drop.silkTouch)
+                return 'all_silkTouch'
+
+            if (tools === 'all' && drop.noSilkTouch)
+                return 'all_noSilkTouch'
+
             if (drop.silkTouch)
+                // @ts-ignore
                 tools = tools.filter(t => t.silkTouch === false)
 
             if (drop.noSilkTouch)
+                // @ts-ignore
                 tools = tools.filter(t => t.silkTouch === true)
         }
     }
@@ -168,15 +187,15 @@ class SelectBestToolInstance extends StrategyExecutionInstance
         const mcData = require('minecraft-data')(this.bot.version);
         const toolList = getRequiredToolsFor(mcData, block, requiredDrop);
 
-        const items = selectBestTool(block, this.bot, toolList);
+        const item = selectBestTool(mcData, block, this.bot, toolList);
 
-        const tool = items[0];
-        const canCollect = items[1];
-
-        if (!canCollect)
+        if (!item && toolList !== 'all')
         {
+            // TODO Replace with "OR" task group
+            // TODO Add enchant task for silk touch items
             const craft = new Craft({
-                itemType: toolList[0], // TODO Replace with "OR" task group
+                // @ts-ignore
+                itemType: toolList[0].name,
                 count: 1
             });
 
@@ -188,13 +207,14 @@ class SelectBestToolInstance extends StrategyExecutionInstance
                     return;
                 }
 
-                if (tool) this.bot.equip(tool, 'hand', cb);
-                else cb();
+                const item2 = selectBestTool(mcData, block, this.bot, toolList);
+                if (item2) this.bot.equip(item2, 'hand', cb);
+                else cb(new Error("Failed to selected item!"));
             });
         }
         else
         {
-            if (tool) this.bot.equip(tool, 'hand', cb);
+            if (item) this.bot.equip(item, 'hand', cb);
             else cb();
         }
     }

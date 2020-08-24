@@ -64,11 +64,18 @@ export class Solver
             if (strategy === caller)
                 continue;
 
-            const h = strategy.estimateHeuristic(dependency, (dep) => this.fastHeuristic(dep));
-            if (h < 0)
-                continue;
+            try
+            {
+                const h = strategy.estimateHeuristic(dependency, (dep) => this.fastHeuristic(dep));
+                if (h < 0)
+                    continue;
 
-            solutions.push([strategy, h]);
+                solutions.push([strategy, h]);
+            }
+            catch(err)
+            {
+                continue;
+            }
         }
 
         solutions.sort((a, b) => a[1] - b[1]);
