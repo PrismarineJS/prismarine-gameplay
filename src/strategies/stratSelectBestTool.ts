@@ -17,6 +17,8 @@ function estimateCraftTime(dependency: Dependency): number
             if (!selectBestTool.inputs.craftIfNeeded)
                 return 0;
 
+            // TODO Improve this heuristic.
+
             // Let's assume 20 seconds
             return 20 * 20;
 
@@ -191,15 +193,20 @@ class SelectBestToolInstance extends StrategyExecutionInstance
 
         if (!item && toolList !== 'all')
         {
-            // TODO Replace with "OR" task group
-            // TODO Add enchant task for silk touch items
-            const craft = new Craft({
-                // @ts-ignore
-                itemType: toolList[0].name,
-                count: 1
-            });
+            const taskOrGroupTask = new TaskOrGroup();
 
-            resolver(craft, err =>
+            for (const tool of toolList)
+            {
+                taskOrGroupTask.inputs.tasks.push(new Craft({
+                    // @ts-ignore
+                    itemType: toolList[0].name,
+                    count: 1
+                }));
+
+                // TODO Add enchant tasks for silk touch items
+            }
+
+            resolver(taskOrGroupTask, err =>
             {
                 if (err)
                 {
