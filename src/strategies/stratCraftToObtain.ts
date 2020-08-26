@@ -1,7 +1,6 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
-import { DependencyResolver } from '../tree';
-import { ObtainItem } from '../dependencies';
-import { Craft } from '../dependencies/craft';
+import { DependencyResolver, HeuristicResolver } from '../tree';
+import { Craft, ObtainItem } from '../dependencies';
 
 export class StratCraftToObtain extends StrategyBase
 {
@@ -17,9 +16,9 @@ export class StratCraftToObtain extends StrategyBase
         switch (dependency.name)
         {
             case 'obtainItem':
-                const obtainItemTask = <ObtainItem>dependency;
-                return resolver(new craftItem({
-                    itemType: obtainItemTask.inputs.itemType,
+                const obtainTask = <ObtainItem>dependency;
+                return resolver(new Craft({
+                    itemType: obtainTask.inputs.itemType,
                     count: 1
                 }));
 
@@ -36,10 +35,10 @@ class CraftToObtainInstance extends StrategyExecutionInstance
         if (dependency.name !== 'obtainItem')
             throw new Error("Unsupported dependency!");
 
-        const obtainItemTask = <ObtainItem>dependency;
+        const obtainTask = <ObtainItem>dependency;
 
         resolver(new Craft({
-            itemType: obtainItemTask.inputs.itemType,
+            itemType: obtainTask.inputs.itemType,
             count: 1
         }), cb);
     }

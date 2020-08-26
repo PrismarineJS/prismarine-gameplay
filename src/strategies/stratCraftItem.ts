@@ -1,9 +1,10 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
-import { DependencyResolver } from '../tree';
+import { DependencyResolver, HeuristicResolver } from '../tree';
 import { MoveToInteract, ObtainItems } from '../dependencies';
 import { TaskQueue } from 'mineflayer-utils';
-import { Craft } from '../dependencies/craft';
+import { Craft } from '../dependencies';
 import { Recipe } from 'prismarine-recipe';
+import { Bot } from 'mineflayer';
 
 function getRequireIngredients(recipe: Recipe): RecipeIngredient[]
 {
@@ -76,24 +77,25 @@ export class StratCraftItem extends StrategyBase
         switch (dependency.name)
         {
             case 'craft':
+                const craftTask = <Craft>dependency;
                 const mcData = require('minecraft-data')(this.bot.version)
-                const itemId = mcData.itemsByName[craftItemTask.inputs.itemType].id
+                const itemId = mcData.itemsByName[craftTask.inputs.itemType].id
                 const recipeList = this.bot.recipesAll(itemId, null, true);
 
-                for (const recipe of recipeList)
-                    if (canCraft(bot, recipe))
+                for (const r of recipeList)
+                    if (canCraft(this.bot, r))
                         return 1;
                 
                 // TODO Replace with "OR" task group for all recipes
-                const recipe = recipes[0];
+                const recipe = recipeList[0];
                 const ingredients = getRequireIngredients(recipe);
 
                 let h = 1;
                 for (const ingredient of ingredients)
                 {
-                    const cost = resolver(new ObtainItem({
+                    const cost = resolver(new ObtainItems({
                         itemType: mcData.items[ingredient.id].name,
-                        count: ingredients.count
+                        count: ingredient.count
                     }))
 
                     if (cost < 0)
@@ -122,7 +124,7 @@ class CraftItemInstance extends StrategyExecutionInstance
     {
         for (const r of recipes)
         {
-            if (canCraft(r))
+            if (canCraft(this.bot, r))
             {
                 cb(undefined, r);
                 return;
