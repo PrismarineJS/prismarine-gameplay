@@ -16,9 +16,10 @@ function getBlockPosition(dependency: Dependency, bot: Bot): Vec3
 
         case 'obtainItem':
             const obtainItem = <ObtainItem>dependency;
-            const blockId = require('minecraft-data')(bot.version).blocksByName[obtainItem.inputs.itemType]?.id || -1;
+            const blockIds = getBlocksThatDrop(bot, obtainItem.inputs.itemType);
             const position = bot.findBlock({
-                matching: b => b.type === blockId,
+                // @ts-expect-error
+                matching: blockIds,
                 maxDistance: 32
             })?.position;
 
@@ -30,6 +31,26 @@ function getBlockPosition(dependency: Dependency, bot: Bot): Vec3
         default:
             throw new Error("Unsupported dependency!");
     }
+}
+
+function getBlocksThatDrop(bot: Bot, requiredDrop: string): number[]
+{
+    const mcData = require('minecraft-data')(bot.version);
+    const ids: number[] = [];
+
+    for (const blockLoot of mcData.blockLootArray)
+    {
+        for (const drop of blockLoot.drops)
+        {
+            if (drop.item === requiredDrop)
+            {
+                ids.push(mcData.blocksByName[blockLoot.block].id);
+                break;
+            }
+        }
+    }
+
+    return ids;
 }
 
 function getRequiredDrop(dependency: Dependency): string | undefined
