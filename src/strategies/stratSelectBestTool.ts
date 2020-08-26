@@ -1,5 +1,5 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
-import { SelectBestTool, Craft } from '../dependencies';
+import { SelectBestTool, Craft, TaskOrGroup } from '../dependencies';
 
 // @ts-ignore
 import nbt from 'prismarine-nbt';
@@ -199,7 +199,7 @@ class SelectBestToolInstance extends StrategyExecutionInstance
             {
                 taskOrGroupTask.inputs.tasks.push(new Craft({
                     // @ts-ignore
-                    itemType: toolList[0].name,
+                    itemType: tool.name,
                     count: 1
                 }));
 
