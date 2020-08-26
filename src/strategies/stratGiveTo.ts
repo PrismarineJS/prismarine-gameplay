@@ -55,7 +55,7 @@ class GiveToInstance extends StrategyExecutionInstance
         const obtainItems = new ObtainItems({
             itemType: giveToTask.inputs.itemType,
             count: giveToTask.inputs.count,
-            protodef compilercountInventory: false
+            countInventory: false
         });
 
         const moveToEntity = (cb1: Callback) => {
