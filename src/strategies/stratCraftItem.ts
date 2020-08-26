@@ -98,7 +98,8 @@ export class StratCraftItem extends StrategyBase
                     {
                         collectIngredientsTask.inputs.tasks.push(new ObtainItems({
                             itemType: mcData.items[ingredient.id].name,
-                            count: ingredient.count
+                            count: ingredient.count,
+                            countInventory: true
                         }));
                     }
                 }
@@ -143,7 +144,8 @@ class CraftItemInstance extends StrategyExecutionInstance
             {
                 collectIngredientsTask.inputs.tasks.push(new ObtainItems({
                     itemType: mcData.items[ingredient.id].name,
-                    count: ingredient.count
+                    count: ingredient.count,
+                    countInventory: true
                 }));
             }
 

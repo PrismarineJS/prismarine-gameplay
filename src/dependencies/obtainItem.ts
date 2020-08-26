@@ -10,7 +10,7 @@ export interface ObtainItemInputs extends DependencyInputs
     /**
      * If false, the items currently in the bot's inventory are not counted.
      */
-    countInventory?: boolean;
+    countInventory: boolean;
 }
 
 export interface ObtainItemOutputs extends DependencyOutputs

@@ -45,8 +45,12 @@ export class StratCollectResources extends StrategyBase
                 const obtainItems = <ObtainItems>dependency;
                 const needed = countNeeded(this.bot, obtainItems);
 
+                if (needed === 0)
+                    return 0;
+
                 return resolver(new ObtainItem({
-                    itemType: obtainItems.inputs.itemType
+                    itemType: obtainItems.inputs.itemType,
+                    countInventory: false
                 })) * needed;
 
             default:
@@ -60,20 +64,18 @@ class CollectResourcesInstance extends StrategyExecutionInstance
     handle(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
         const obtainItems = <ObtainItems>dependency;
-        let remaining = countNeeded(this.bot, obtainItems);
-
         const collectAnother = () =>
         {
+            remaining = countNeeded(this.bot, obtainItems);
             if (remaining === 0)
             {
                 cb();
                 return;
             }
 
-            remaining--;
-
             resolver(new ObtainItem({
-                itemType: obtainItems.inputs.itemType
+                itemType: obtainItems.inputs.itemType,
+                countInventory: false
             }), err =>
             {
                 if (err)
