@@ -12,7 +12,7 @@ function getRequireIngredients(recipe: Recipe): RecipeIngredient[]
 
     function addOrPut(id?: number): void
     {
-        if (id === undefined || id === null)
+        if (id === undefined || id === null || id < 0)
             return;
 
         for (const ingredient of ingredients)
@@ -199,8 +199,8 @@ class CraftItemInstance extends StrategyExecutionInstance
             });
 
             const taskQueue = new TaskQueue();
-            taskQueue.add((cb: Callback) => resolver(moveToCraftingTable, cb));
-            taskQueue.add((cb: Callback) => this.bot.craft(recipe, craftItemTask.inputs.count, craftingTable, cb))
+            taskQueue.add((cb1: Callback) => resolver(moveToCraftingTable, cb1));
+            taskQueue.add((cb1: Callback) => this.bot.craft(recipe, craftItemTask.inputs.count, craftingTable, cb1))
             taskQueue.runAll(cb);
         }, resolver);
     }

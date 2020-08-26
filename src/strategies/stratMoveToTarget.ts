@@ -98,7 +98,6 @@ class MoveToTargetInstance extends StrategyExecutionInstance
             {
                 sub.cleanup();
                 pathfinder.setGoal(null);
-
                 cb(new Error("No path to target!"));
             }
         });

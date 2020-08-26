@@ -55,7 +55,7 @@ export class Solver
      * 
      * @returns A list of tuples containing each available strategy and its heuristic value.
      */
-    findSolutionsFor(dependency: Dependency, caller?: StrategyBase): DependencyResolution
+    findSolutionsFor(dependency: Dependency, caller?: StrategyBase, depth: number = 0): DependencyResolution
     {
         const solutions: [StrategyBase, number][] = [];
 
@@ -66,7 +66,8 @@ export class Solver
 
             try
             {
-                const h = strategy.estimateHeuristic(dependency, (dep) => this.fastHeuristic(dep));
+                const h = strategy.estimateHeuristic(dependency, (dep) => this.fastHeuristic(dep, depth));
+
                 if (h < 0)
                     continue;
 
@@ -88,9 +89,12 @@ export class Solver
      * 
      * @param dependency - The dependency to resolve.
      */
-    private fastHeuristic(dependency: Dependency): number
+    private fastHeuristic(dependency: Dependency, depth: number): number
     {
-        const resolve = this.findSolutionsFor(dependency);
+        if (depth > 10)
+            return 0;
+
+        const resolve = this.findSolutionsFor(dependency, undefined, depth + 1);
 
         if (resolve.dependencyHandlers.length === 0)
             return -1;

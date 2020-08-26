@@ -66,7 +66,7 @@ class CollectResourcesInstance extends StrategyExecutionInstance
         const obtainItems = <ObtainItems>dependency;
         const collectAnother = () =>
         {
-            remaining = countNeeded(this.bot, obtainItems);
+            const remaining = countNeeded(this.bot, obtainItems);
             if (remaining === 0)
             {
                 cb();

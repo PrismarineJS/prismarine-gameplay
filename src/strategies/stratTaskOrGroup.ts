@@ -26,12 +26,9 @@ export class StratTaskOrGroup extends StrategyBase
                     // @ts-ignore
                     task.estimatedCost = h; // TODO Estimate heuristic at execute time, as it may change
 
-                    if (h >= 0 && min < 0 || h < min)
+                    if (min < 0 || (h >= 0 && h < min))
                         min = h;
                 }
-
-                if (min < 0)
-                    console.log(JSON.stringify(taskOrGroupTask, null, 2));
 
                 return min;
 
