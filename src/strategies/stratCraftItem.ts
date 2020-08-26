@@ -64,13 +64,13 @@ class CraftItemInstance extends StrategyExecutionInstance
             for (const row of recipe.inShape)
             {
                 for (const col of row)
-                    addOrPut(<number><unknown>col)
+                    addOrPut(col.id)
             }
         }
         else
         {
             for (const item of recipe.ingredients)
-                addOrPut(<number><unknown>item)
+                addOrPut(item.id)
         }
 
         return ingredients;

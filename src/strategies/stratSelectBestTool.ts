@@ -30,7 +30,7 @@ function toolListContains(mcData: any, toolList: ItemListEquip, item: Item): boo
     if (toolList === 'all')
         return true;
 
-    const enchants: Enchantment[] = (item && item.nbt) ? nbt.simplify(item.nbt).Enchantments : [];
+    const enchants: Enchantment[] = ((item && item.nbt) ? nbt.simplify(item.nbt).Enchantments : []) || [];
     const silkTouchId = mcData.enchantmentsByName.silk_touch.id
 
     // @ts-ignore
@@ -104,7 +104,7 @@ function getHarvestTools(mcData: any, block: Block): ItemListEquip
 
     const tools = [];
 
-    for (const t of harvestTools)
+    for (const t in harvestTools)
     {
         const itemData = mcData.items[t];
         tools.push({
