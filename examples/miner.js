@@ -24,6 +24,8 @@ const bot = mineflayer.createBot({
 bot.loadPlugin(pathfinder)
 bot.loadPlugin(gameplay)
 
+bot.on('spawn', () => bot.gameplay.debugText = true)
+
 bot.on('chat', (username, message) => run(username, message))
 
 function run (username, message) {
@@ -89,6 +91,16 @@ function run (username, message) {
       bot.gameplay.solveFor(
         new ObtainItem({
           itemType: command[1]
+        })
+      )
+      break
+
+    case /^bringme [0-9]+ [a-zA-Z_]+$/.test(message):
+      bot.gameplay.solveFor(
+        new GiveTo({
+          itemType: command[2],
+          count: parseInt(command[1]),
+          entity: player
         })
       )
       break

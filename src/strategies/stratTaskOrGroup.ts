@@ -30,6 +30,9 @@ export class StratTaskOrGroup extends StrategyBase
                         min = h;
                 }
 
+                if (min < 0)
+                    console.log(JSON.stringify(taskOrGroupTask, null, 2));
+
                 return min;
 
             default:

@@ -17,6 +17,7 @@ function loadDefaultStrategies(gameplay: Gameplay): void
     gameplay.loadStrategy(new strats.StratCraftToObtain(gameplay.solver));
     gameplay.loadStrategy(new strats.StratTaskOrGroup(gameplay.solver));
     gameplay.loadStrategy(new strats.StratTaskAndGroup(gameplay.solver));
+    gameplay.loadStrategy(new strats.StratGiveTo(gameplay.solver));
 }
 
 /**
