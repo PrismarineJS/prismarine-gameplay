@@ -11,6 +11,11 @@ export interface ObtainItemsInputs extends DependencyInputs
      * The number to collect.
      */
     count: number;
+
+    /**
+     * If false, the items currently in the bot's inventory are not counted.
+     */
+    countInventory?: boolean;
 }
 
 export interface ObtainItemsOutputs extends DependencyOutputs
@@ -21,13 +26,8 @@ export interface ObtainItemsOutputs extends DependencyOutputs
 export class ObtainItems implements Dependency
 {
     readonly name: string = 'obtainItems';
+    readonly outputs: ObtainItemsOutputs = {};
 
-    constructor(
-        readonly inputs: ObtainItemsInputs = {
-            itemType: 'air',
-            count: 1
-        },
-        readonly outputs: ObtainItemsOutputs = {
-        })
-    { }
+    constructor(readonly inputs: ObtainItemsInputs)
+    {}
 }

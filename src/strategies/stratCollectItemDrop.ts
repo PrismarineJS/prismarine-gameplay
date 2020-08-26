@@ -38,6 +38,27 @@ function getNearbyItem(bot: Bot, itemName: string): Entity | undefined
     return closestEntity;
 }
 
+function countItemsOfType(bot: Bot, itemType: string): number
+{
+    let count = 0;
+
+    for (const item of bot.inventory.items())
+    {
+        if (item.name === itemType)
+            count += item.count;
+    }
+
+    return count;
+}
+
+function isNeeded(bot: Bot, obtainItem: ObtainItem): boolean
+{
+    if (obtainItem.inputs.countInventory)
+        return countItemsOfType(bot, obtainItem.inputs.itemType) === 0;
+
+    return true;
+}
+
 export class StratCollectItemDrop extends StrategyBase
 {
     readonly name: string = 'collectItemDrop';
@@ -53,6 +74,10 @@ export class StratCollectItemDrop extends StrategyBase
         {
             case 'obtainItem':
                 const obtainItem = <ObtainItem>dependency;
+
+                if (!isNeeded(this.bot, obtainItem))
+                    return -1;
+
                 return this.calculateHeuristicForItem(obtainItem.inputs.itemType);
 
             case 'collectItemDrops':

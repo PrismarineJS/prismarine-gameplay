@@ -5,7 +5,8 @@ const {
   MoveTo,
   BreakBlock,
   ObtainItems,
-  ObtainItem
+  ObtainItem,
+  GiveTo
 } = require('prismarine-gameplay')
 const { Vec3 } = require('vec3')
 

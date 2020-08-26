@@ -1,6 +1,6 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
-import { DependencyResolver, HeuristicResolver } from '../tree';
-import { Craft, ObtainItem } from '../dependencies';
+import { DependencyResolver } from '../tree';
+import { ObtainItem } from '../dependencies';
 import { Bot } from 'mineflayer';
 
 function countItemsOfType(bot: Bot, itemType: string): number
@@ -24,29 +24,24 @@ function isNeeded(bot: Bot, obtainItem: ObtainItem): boolean
     return true;
 }
 
-export class StratCraftToObtain extends StrategyBase
+export class StratAlreadyHasItem extends StrategyBase
 {
-    readonly name: string = 'craftItem';
+    readonly name: string = 'alreadyHasItem';
 
     constructor(solver: Solver)
     {
-        super(solver, CraftToObtainInstance);
+        super(solver, AlreadyHasItemInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number
+    estimateHeuristic(dependency: Dependency): number
     {
         switch (dependency.name)
         {
             case 'obtainItem':
                 const obtainItem = <ObtainItem>dependency;
 
-                if (!isNeeded(this.bot, obtainItem))
-                    return -1;
-
-                return resolver(new Craft({
-                    itemType: obtainItem.inputs.itemType,
-                    count: 1
-                }));
+                if (isNeeded(this.bot, obtainItem)) return -1;
+                else return 0;
 
             default:
                 return -1;
@@ -54,18 +49,14 @@ export class StratCraftToObtain extends StrategyBase
     }
 }
 
-class CraftToObtainInstance extends StrategyExecutionInstance
+class AlreadyHasItemInstance extends StrategyExecutionInstance
 {
     handle(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
         if (dependency.name !== 'obtainItem')
             throw new Error("Unsupported dependency!");
 
-        const obtainTask = <ObtainItem>dependency;
-
-        resolver(new Craft({
-            itemType: obtainTask.inputs.itemType,
-            count: 1
-        }), cb);
+        // Do nothing
+        cb();
     }
 }

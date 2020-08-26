@@ -6,6 +6,27 @@ import { DependencyResolver, HeuristicResolver } from "../tree";
 import { TaskQueue } from "mineflayer-utils";
 import { Bot } from "mineflayer";
 
+function countItemsOfType(bot: Bot, itemType: string): number
+{
+    let count = 0;
+
+    for (const item of bot.inventory.items())
+    {
+        if (item.name === itemType)
+            count += item.count;
+    }
+
+    return count;
+}
+
+function isNeeded(bot: Bot, obtainItem: ObtainItem): boolean
+{
+    if (obtainItem.inputs.countInventory)
+        return countItemsOfType(bot, obtainItem.inputs.itemType) === 0;
+
+    return true;
+}
+
 function getBlockPosition(dependency: Dependency, bot: Bot): Vec3
 {
     switch (dependency.name)
@@ -16,6 +37,7 @@ function getBlockPosition(dependency: Dependency, bot: Bot): Vec3
 
         case 'obtainItem':
             const obtainItem = <ObtainItem>dependency;
+
             const blockIds = getBlocksThatDrop(bot, obtainItem.inputs.itemType);
             const position = bot.findBlock({
                 // @ts-expect-error
@@ -99,7 +121,14 @@ export class StratCollectBlock extends StrategyBase
         switch (dependency.name)
         {
             case 'collectBlock':
+                return estimateDistance(dependency, this.bot);
+
             case 'obtainItem':
+                const obtainItem = <ObtainItem>dependency;
+
+                if (!isNeeded(this.bot, obtainItem))
+                    return -1;
+
                 return estimateDistance(dependency, this.bot);
 
             default:
