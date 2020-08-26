@@ -1,24 +1,24 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
 import { DependencyResolver, HeuristicResolver } from '../tree';
-import { TaskOrGroup } from '../dependencies';
+import { TaskAndGroup } from '../dependencies';
 
-export class StratTaskOrGroup extends StrategyBase
+export class StratTaskAndGroup extends StrategyBase
 {
-    readonly name: string = 'taskOrGroup';
+    readonly name: string = 'taskAndGroup';
 
     constructor(solver: Solver)
     {
-        super(solver, TaskOrGroupInstance);
+        super(solver, TaskAndGroupInstance);
     }
 
     estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number
     {
         switch (dependency.name)
         {
-            case 'taskOrGroup':
-                const taskOrGroupTask = <TaskOrGroup>dependency;
+            case 'taskAndGroup':
+                const taskAndGroupTask = <TaskAndGroup>dependency;
 
-                const min = -1;
+                const sum = 0;
                 for (const task of taskOrGroupTask.inputs.tasks)
                 {
                     const h = resolver(task);
@@ -26,11 +26,13 @@ export class StratTaskOrGroup extends StrategyBase
                     // @ts-ignore
                     task.estimatedCost = h; // TODO Estimate heuristic at execute time, as it may change
 
-                    if (h >= 0 && min < 0 || h < min)
-                        min = h;
+                    if (h < 0)
+                        return -1;
+
+                    sum += h;
                 }
 
-                return min;
+                return sum;
 
             default:
                 return -1;
@@ -38,37 +40,31 @@ export class StratTaskOrGroup extends StrategyBase
     }
 }
 
-class TaskOrGroupInstance extends StrategyExecutionInstance
+class TaskAndGroupInstance extends StrategyExecutionInstance
 {
     handle(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void
     {
-        if (dependency.name !== 'taskOrGroup')
+        if (dependency.name !== 'taskAndGroup')
             throw new Error("Unsupported dependency!");
 
-        const taskOrGroupTask = <TaskOrGroup>dependency;
+        const taskAndGroupTask = <TaskAndGroup>dependency;
 
         // @ts-ignore
-        taskOrGroupTask.inputs.tasks.sort((a, b) => a.estimatedCost - b.estimatedCost)
+        taskAndGroupTask.inputs.tasks.sort((a, b) => a.estimatedCost - b.estimatedCost)
 
         function handleNext()
         {
-            const task = taskOrGroupTask.inputs.tasks.pop();
+            const task = taskAndGroupTask.inputs.tasks.pop();
 
             if (!task)
             {
-                cb(new Error("No tasks remaining!"));
-                return;
-            }
-
-            if (task.estimatedCost === -1)
-            {
-                handleNext();
+                cb();
                 return;
             }
 
             resolver(task, err => {
-                if (err) handleNext();
-                else cb();
+                if (err) cb(err);
+                else handleNext();
             })
         }
     }

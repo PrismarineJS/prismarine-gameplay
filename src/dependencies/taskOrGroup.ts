@@ -20,5 +20,7 @@ export class TaskOrGroup implements Dependency
     readonly name: string = 'taskOrGroup';
     readonly outputs: TaskOrGroupOutputs = {};
 
-    constructor(readonly inputs: TaskOrGroupInputs) { }
+    constructor(readonly inputs: TaskOrGroupInputs = {
+        tasks = []
+    }) { }
 }

@@ -8,3 +8,4 @@ export * from './stratSelectBestTool';
 export * from './stratCraftItem';
 export * from './stratCraftToObtain';
 export * from './stratTaskOrGroup';
+export * from './stratTaskAndGroup';

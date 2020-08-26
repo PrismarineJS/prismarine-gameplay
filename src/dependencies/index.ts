@@ -9,3 +9,4 @@ export * from './obtainItems';
 export * from './selectBestTool';
 export * from './craft';
 export * from './taskOrGroup';
+export * from './taskAndGroup';
