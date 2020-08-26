@@ -270,6 +270,16 @@ export class Tree
         tree.parent = this;
 
         this.printSpam();
+        this.root.checkForStackOverflow();
+    }
+
+    private checkForStackOverflow(depth: number = 0): void
+    {
+        if (depth >= 32)
+            throw new Error("Tree max depth exceeded!");
+
+        for (const child of this.children)
+            child.checkForStackOverflow(depth + 1);
     }
 
     private printSpam(): void

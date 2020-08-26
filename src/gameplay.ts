@@ -14,6 +14,7 @@ function loadDefaultStrategies(gameplay: Gameplay): void
     gameplay.loadStrategy(new strats.StratCollectResources(gameplay.solver));
     gameplay.loadStrategy(new strats.StratSelectBestTool(gameplay.solver));
     gameplay.loadStrategy(new strats.StratCraftItem(gameplay.solver));
+    gameplay.loadStrategy(new strats.StratCraftToObtain(gameplay.solver));
 }
 
 /**

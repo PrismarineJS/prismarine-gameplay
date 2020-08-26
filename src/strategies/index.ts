@@ -6,3 +6,4 @@ export * from './stratCollectBlock';
 export * from './collectResources';
 export * from './stratSelectBestTool';
 export * from './stratCraftItem';
+export * from './stratCraftToObtain';
