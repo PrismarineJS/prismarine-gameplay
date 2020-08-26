@@ -12,12 +12,16 @@ export class StratCraftToObtain extends StrategyBase
         super(solver, CraftToObtainInstance);
     }
 
-    estimateHeuristic(dependency: Dependency): number
+    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number
     {
         switch (dependency.name)
         {
             case 'obtainItem':
-                return 1;
+                const obtainItemTask = <ObtainItem>dependency;
+                return resolver(new craftItem({
+                    itemType: obtainItemTask.inputs.itemType,
+                    count: 1
+                }));
 
             default:
                 return -1;

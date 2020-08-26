@@ -5,6 +5,63 @@ import { TaskQueue } from 'mineflayer-utils';
 import { Craft } from '../dependencies/craft';
 import { Recipe } from 'prismarine-recipe';
 
+function getRequireIngredients(recipe: Recipe): RecipeIngredient[]
+{
+    const ingredients: RecipeIngredient[] = [];
+
+    function addOrPut(id?: number): void
+    {
+        if (id === undefined || id === null)
+            return;
+
+        for (const ingredient of ingredients)
+        {
+            if (ingredient.id === id)
+            {
+                ingredient.count++;
+                return;
+            }
+        }
+
+        ingredients.push({
+            id: id,
+            count: 1
+        });
+    }
+
+    if (recipe.inShape) 
+    {
+        for (const row of recipe.inShape)
+        {
+            for (const col of row)
+                addOrPut(col.id)
+        }
+    }
+    else
+    {
+        for (const item of recipe.ingredients)
+            addOrPut(item.id)
+    }
+
+    return ingredients;
+}
+
+function canCraft(bot: Bot, recipe: Recipe): boolean
+{
+    const ingredients = getRequireIngredients(recipe);
+
+    for (const item of bot.inventory.items())
+    {
+        for (const ingredient of ingredients)
+        {
+            if (item.type === ingredient.id)
+                ingredient.count -= item.count;
+        }
+    }
+
+    return ingredients.filter(x => x.count > 0).length === 0;
+}
+
 export class StratCraftItem extends StrategyBase
 {
     readonly name: string = 'craftItem';
@@ -14,12 +71,38 @@ export class StratCraftItem extends StrategyBase
         super(solver, CraftItemInstance);
     }
 
-    estimateHeuristic(dependency: Dependency): number
+    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number
     {
         switch (dependency.name)
         {
             case 'craft':
-                return 1;
+                const mcData = require('minecraft-data')(this.bot.version)
+                const itemId = mcData.itemsByName[craftItemTask.inputs.itemType].id
+                const recipeList = this.bot.recipesAll(itemId, null, true);
+
+                for (const recipe of recipeList)
+                    if (canCraft(bot, recipe))
+                        return 1;
+                
+                // TODO Replace with "OR" task group for all recipes
+                const recipe = recipes[0];
+                const ingredients = getRequireIngredients(recipe);
+
+                let h = 1;
+                for (const ingredient of ingredients)
+                {
+                    const cost = resolver(new ObtainItem({
+                        itemType: mcData.items[ingredient.id].name,
+                        count: ingredients.count
+                    }))
+
+                    if (cost < 0)
+                        throw new Error("Unhandled task group!");
+
+                    h += cost;
+                }
+
+                return h;
 
             default:
                 return -1;
@@ -35,68 +118,11 @@ interface RecipeIngredient
 
 class CraftItemInstance extends StrategyExecutionInstance
 {
-    getRequireIngredients(recipe: Recipe): RecipeIngredient[]
-    {
-        const ingredients: RecipeIngredient[] = [];
-
-        function addOrPut(id?: number): void
-        {
-            if (id === undefined || id === null)
-                return;
-
-            for (const ingredient of ingredients)
-            {
-                if (ingredient.id === id)
-                {
-                    ingredient.count++;
-                    return;
-                }
-            }
-
-            ingredients.push({
-                id: id,
-                count: 1
-            });
-        }
-
-        if (recipe.inShape) 
-        {
-            for (const row of recipe.inShape)
-            {
-                for (const col of row)
-                    addOrPut(col.id)
-            }
-        }
-        else
-        {
-            for (const item of recipe.ingredients)
-                addOrPut(item.id)
-        }
-
-        return ingredients;
-    }
-
-    canCraft(recipe: Recipe): boolean
-    {
-        const ingredients = this.getRequireIngredients(recipe);
-
-        for (const item of this.bot.inventory.items())
-        {
-            for (const ingredient of ingredients)
-            {
-                if (item.type === ingredient.id)
-                    ingredient.count -= item.count;
-            }
-        }
-
-        return ingredients.filter(x => x.count > 0).length === 0;
-    }
-
     prepareRecipe(recipes: Recipe[], cb: (err?: Error, recipe?: Recipe) => void, resolver: DependencyResolver): void
     {
         for (const r of recipes)
         {
-            if (this.canCraft(r))
+            if (canCraft(r))
             {
                 cb(undefined, r);
                 return;
@@ -106,7 +132,7 @@ class CraftItemInstance extends StrategyExecutionInstance
         // TODO Replace with "OR" task group for all recipes
 
         const recipe = recipes[0];
-        const ingredients = this.getRequireIngredients(recipe);
+        const ingredients = getRequireIngredients(recipe);
         const mcData = require('minecraft-data')(this.bot.version)
 
         function getNextIngredient()
