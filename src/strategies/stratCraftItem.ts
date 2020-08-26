@@ -2,7 +2,7 @@ import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver }
 import { DependencyResolver, HeuristicResolver } from '../tree';
 import { MoveToInteract, ObtainItems } from '../dependencies';
 import { TaskQueue } from 'mineflayer-utils';
-import { Craft } from '../dependencies';
+import { Craft, TaskOrGroup, TaskAndGroup } from '../dependencies';
 import { Recipe } from 'prismarine-recipe';
 import { Bot } from 'mineflayer';
 
@@ -86,25 +86,24 @@ export class StratCraftItem extends StrategyBase
                     if (canCraft(this.bot, r))
                         return 1;
                 
-                // TODO Replace with "OR" task group for all recipes
-                const recipe = recipeList[0];
-                const ingredients = getRequireIngredients(recipe);
+                const collectOneRecipeTask = new TaskOrGroup();
 
-                let h = 1;
-                for (const ingredient of ingredients)
+                for (const recipe of recipeList)
                 {
-                    const cost = resolver(new ObtainItems({
-                        itemType: mcData.items[ingredient.id].name,
-                        count: ingredient.count
-                    }))
+                    const collectIngredientsTask = new TaskAndGroup();
+                    collectOneRecipeTask.inputs.tasks.push(collectIngredientsTask);
 
-                    if (cost < 0)
-                        throw new Error("Unhandled task group!");
-
-                    h += cost;
+                    const ingredients = getRequireIngredients(recipe);
+                    for (const ingredient of ingredients)
+                    {
+                        collectIngredientsTask.inputs.tasks.push(new ObtainItems({
+                            itemType: mcData.items[ingredient.id].name,
+                            count: ingredient.count
+                        }));
+                    }
                 }
 
-                return h;
+                return resolver(collectOneRecipeTask);
 
             default:
                 return -1;
@@ -131,38 +130,37 @@ class CraftItemInstance extends StrategyExecutionInstance
             }
         }
 
-        // TODO Replace with "OR" task group for all recipes
-
-        const recipe = recipes[0];
-        const ingredients = getRequireIngredients(recipe);
         const mcData = require('minecraft-data')(this.bot.version)
+        const collectOneRecipeTask = new TaskOrGroup();
 
-        function getNextIngredient()
+        for (const recipe of recipes)
         {
-            // TODO Replace with orderless task group
-            const ingredient = ingredients.pop();
+            const collectIngredientsTask = new TaskAndGroup();
+            collectOneRecipeTask.inputs.tasks.push(collectIngredientsTask);
 
-            if (ingredient === undefined)
+            const ingredients = getRequireIngredients(recipe);
+            for (const ingredient of ingredients)
             {
-                cb(undefined, recipe);
+                collectIngredientsTask.inputs.tasks.push(new ObtainItems({
+                    itemType: mcData.items[ingredient.id].name,
+                    count: ingredient.count
+                }));
+            }
+
+            // @ts-ignore
+            collectIngredientsTask.recipe = recipe;
+        }
+
+        resolver(collectOneRecipeTask, err => {
+            if (err)
+            {
+                cb(err);
                 return;
             }
             
-            resolver(new ObtainItems({
-                itemType: mcData.items[ingredient.id].name,
-                count: ingredient.count
-            }), err => {
-                if (err)
-                {
-                    cb(err);
-                    return;
-                }
-
-                getNextIngredient();
-            });
-        }
-
-        getNextIngredient();
+            // @ts-ignore
+            cb(undefined, collectOneRecipeTask.outputs.passingTask.recipe);
+        })
     }
 
     handle(dependency: Dependency, resolver: DependencyResolver, cb: Callback): void

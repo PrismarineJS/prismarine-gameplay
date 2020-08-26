@@ -12,7 +12,10 @@ export interface TaskOrGroupInputs extends DependencyInputs
 
 export interface TaskOrGroupOutputs extends DependencyOutputs
 {
-
+    /**
+     * The task that caused this group to pass, if any.
+     */
+    passingTask?: Dependency;
 }
 
 export class TaskOrGroup implements Dependency
@@ -21,6 +24,6 @@ export class TaskOrGroup implements Dependency
     readonly outputs: TaskOrGroupOutputs = {};
 
     constructor(readonly inputs: TaskOrGroupInputs = {
-        tasks = []
+        tasks: []
     }) { }
 }

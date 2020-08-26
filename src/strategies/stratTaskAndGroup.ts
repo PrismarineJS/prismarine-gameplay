@@ -18,8 +18,8 @@ export class StratTaskAndGroup extends StrategyBase
             case 'taskAndGroup':
                 const taskAndGroupTask = <TaskAndGroup>dependency;
 
-                const sum = 0;
-                for (const task of taskOrGroupTask.inputs.tasks)
+                let sum = 0;
+                for (const task of taskAndGroupTask.inputs.tasks)
                 {
                     const h = resolver(task);
 
@@ -49,12 +49,14 @@ class TaskAndGroupInstance extends StrategyExecutionInstance
 
         const taskAndGroupTask = <TaskAndGroup>dependency;
 
+        const tasks = [...taskAndGroupTask.inputs.tasks]
+
         // @ts-ignore
-        taskAndGroupTask.inputs.tasks.sort((a, b) => a.estimatedCost - b.estimatedCost)
+        tasks.sort((a, b) => a.estimatedCost - b.estimatedCost)
 
         function handleNext()
         {
-            const task = taskAndGroupTask.inputs.tasks.pop();
+            const task = tasks.pop();
 
             if (!task)
             {
@@ -63,9 +65,16 @@ class TaskAndGroupInstance extends StrategyExecutionInstance
             }
 
             resolver(task, err => {
-                if (err) cb(err);
-                else handleNext();
+                if (err)
+                {
+                    taskAndGroupTask.outputs.failingTask = task;
+                    cb(err);
+                }
+                else
+                    handleNext();
             })
         }
+
+        handleNext();
     }
 }

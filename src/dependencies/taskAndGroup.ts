@@ -12,7 +12,10 @@ export interface TaskAndGroupInputs extends DependencyInputs
 
 export interface TaskAndGroupOutputs extends DependencyOutputs
 {
-
+    /**
+     * The task that caused this group to fail, if any.
+     */
+    failingTask?: Dependency;
 }
 
 export class TaskAndGroup implements Dependency
@@ -21,6 +24,6 @@ export class TaskAndGroup implements Dependency
     readonly outputs: TaskAndGroupOutputs = {};
 
     constructor(readonly inputs: TaskAndGroupInputs = {
-        tasks = []
+        tasks: []
     }) { }
 }
