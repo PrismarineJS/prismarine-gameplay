@@ -1,4 +1,4 @@
-import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
+import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver, Heuristics } from '../strategy';
 import { BreakBlock } from '../dependencies/breakBlock';
 import { MoveToInteract, SelectBestTool } from '../dependencies';
 
@@ -16,16 +16,22 @@ export class StratBreakBlock extends StrategyBase
         super(solver, BreakBlockInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number
+    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): Heuristics | null
     {
-        switch (dependency.name)
-        {
-            case 'breakBlock':
-                return this.estimateTime(<BreakBlock>dependency, resolver);
+        if (dependency.name !== 'breakBlock')
+            return null;
 
-            default:
-                return -1;
-        }
+        const time = this.estimateTime(<BreakBlock>dependency, resolver);
+
+        if (time < 0)
+            return null;
+
+        // TODO Add child tasks
+
+        return {
+            time: time,
+            childTasks: []
+        };
     }
 
     private estimateTime(breakBlock: BreakBlock, resolver: HeuristicResolver): number

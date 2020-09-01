@@ -1,4 +1,4 @@
-import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
+import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver, Heuristics } from '../strategy';
 import { DependencyResolver } from '../tree';
 import { ObtainItem } from '../dependencies';
 import { Bot } from 'mineflayer';
@@ -33,19 +33,20 @@ export class StratAlreadyHasItem extends StrategyBase
         super(solver, AlreadyHasItemInstance);
     }
 
-    estimateHeuristic(dependency: Dependency): number
+    estimateHeuristic(dependency: Dependency): Heuristics | null
     {
-        switch (dependency.name)
-        {
-            case 'obtainItem':
-                const obtainItem = <ObtainItem>dependency;
+        if (dependency.name !== 'obtainItem')
+            return null;
 
-                if (isNeeded(this.bot, obtainItem)) return -1;
-                else return 0;
+        const obtainItem = <ObtainItem>dependency;
 
-            default:
-                return -1;
-        }
+        if (isNeeded(this.bot, obtainItem))
+            return null;
+
+        return {
+            time: 0,
+            childTasks: []
+        };
     }
 }
 

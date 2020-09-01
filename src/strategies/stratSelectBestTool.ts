@@ -1,4 +1,4 @@
-import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
+import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver, Heuristics } from '../strategy';
 import { SelectBestTool, Craft, TaskOrGroup } from '../dependencies';
 
 // @ts-ignore
@@ -8,23 +8,26 @@ import { Block } from 'prismarine-block';
 import { Item } from 'prismarine-item';
 import { Bot, Enchantment } from 'mineflayer';
 
-function estimateCraftTime(dependency: Dependency): number
+function estimateCraftTime(dependency: Dependency): Heuristics | null
 {
-    switch (dependency.name)
+    if (dependency.name !== 'selectBestTool')
+        return null;
+
+    const selectBestTool = <SelectBestTool>dependency;
+
+    if (!selectBestTool.inputs.craftIfNeeded)
     {
-        case 'selectBestTool':
-            const selectBestTool = <SelectBestTool>dependency;
-            if (!selectBestTool.inputs.craftIfNeeded)
-                return 0;
-
-            // TODO Improve this heuristic.
-
-            // Let's assume 20 seconds
-            return 20 * 20;
-
-        default:
-            throw new Error("Unsupported dependency!");
+        return {
+            time: 0,
+            childTasks: []
+        };
     }
+
+    // TODO Improve this heuristic.
+    return {
+        time: 20 * 20, // Let's assume 20 seconds
+        childTasks: []
+    };
 }
 
 function toolListContains(mcData: any, toolList: ItemListEquip, item: Item): boolean
@@ -162,16 +165,12 @@ export class StratSelectBestTool extends StrategyBase
         super(solver, SelectBestToolInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number
+    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): Heuristics | null
     {
-        switch (dependency.name)
-        {
-            case 'selectBestTool':
-                return estimateCraftTime(dependency);
+        if (dependency.name !== 'selectBestTool')
+            return null;
 
-            default:
-                return -1;
-        }
+        return estimateCraftTime(dependency);
     }
 }
 

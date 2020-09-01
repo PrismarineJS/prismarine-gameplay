@@ -1,4 +1,4 @@
-import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
+import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver, Heuristics } from '../strategy';
 import { ObtainItems } from '../dependencies/obtainItems';
 import { ObtainItem } from '../dependencies';
 import { DependencyResolver, HeuristicResolver } from '../tree';
@@ -37,25 +37,36 @@ export class StratCollectResources extends StrategyBase
         super(solver, CollectResourcesInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number
+    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): Heuristics | null
     {
-        switch (dependency.name)
+        if (dependency.name !== 'obtainItems')
+            return null;
+
+        const obtainItems = <ObtainItems>dependency;
+        const needed = countNeeded(this.bot, obtainItems);
+
+        if (needed === 0)
         {
-            case 'obtainItems':
-                const obtainItems = <ObtainItems>dependency;
-                const needed = countNeeded(this.bot, obtainItems);
-
-                if (needed === 0)
-                    return 0;
-
-                return resolver(new ObtainItem({
-                    itemType: obtainItems.inputs.itemType,
-                    countInventory: false
-                })) * needed;
-
-            default:
-                return -1;
+            return {
+                time: 0,
+                childTasks: []
+            };
         }
+
+        const childTasks = [];
+
+        for (let i = 0; i < needed; i++)
+        {
+            childTasks.push(new ObtainItem({
+                itemType: obtainItems.inputs.itemType,
+                countInventory: false
+            }));
+        }
+
+        return {
+            time: 0,
+            childTasks: childTasks
+        };
     }
 }
 

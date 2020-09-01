@@ -1,4 +1,4 @@
-import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
+import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver, Heuristics } from '../strategy';
 import { DependencyResolver, HeuristicResolver } from '../tree';
 import { MoveToInteract, ObtainItems } from '../dependencies';
 import { TaskQueue } from 'mineflayer-utils';
@@ -72,43 +72,46 @@ export class StratCraftItem extends StrategyBase
         super(solver, CraftItemInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number
+    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): Heuristics | null
     {
-        switch (dependency.name)
+        if (dependency.name !== 'craft')
+            return null;
+
+        const craftTask = <Craft>dependency;
+        const mcData = require('minecraft-data')(this.bot.version)
+        const itemId = mcData.itemsByName[craftTask.inputs.itemType].id
+        const recipeList = this.bot.recipesAll(itemId, null, true);
+
+        for (const r of recipeList)
+            if (canCraft(this.bot, r))
+                return null;
+        
+        const collectOneRecipeTask = new TaskOrGroup();
+
+        for (const recipe of recipeList)
         {
-            case 'craft':
-                const craftTask = <Craft>dependency;
-                const mcData = require('minecraft-data')(this.bot.version)
-                const itemId = mcData.itemsByName[craftTask.inputs.itemType].id
-                const recipeList = this.bot.recipesAll(itemId, null, true);
+            const collectIngredientsTask = new TaskAndGroup();
+            collectOneRecipeTask.inputs.tasks.push(collectIngredientsTask);
 
-                for (const r of recipeList)
-                    if (canCraft(this.bot, r))
-                        return 1;
-                
-                const collectOneRecipeTask = new TaskOrGroup();
-
-                for (const recipe of recipeList)
-                {
-                    const collectIngredientsTask = new TaskAndGroup();
-                    collectOneRecipeTask.inputs.tasks.push(collectIngredientsTask);
-
-                    const ingredients = getRequireIngredients(recipe);
-                    for (const ingredient of ingredients)
-                    {
-                        collectIngredientsTask.inputs.tasks.push(new ObtainItems({
-                            itemType: mcData.items[ingredient.id].name,
-                            count: ingredient.count,
-                            countInventory: true
-                        }));
-                    }
-                }
-
-                return resolver(collectOneRecipeTask);
-
-            default:
-                return -1;
+            const ingredients = getRequireIngredients(recipe);
+            for (const ingredient of ingredients)
+            {
+                collectIngredientsTask.inputs.tasks.push(new ObtainItems({
+                    itemType: mcData.items[ingredient.id].name,
+                    count: ingredient.count,
+                    countInventory: true
+                }));
+            }
         }
+
+        return {
+            time: craftTask.inputs.count,
+            childTasks: [
+                collectOneRecipeTask
+
+                // TODO Add movement task
+            ]
+        };
     }
 }
 

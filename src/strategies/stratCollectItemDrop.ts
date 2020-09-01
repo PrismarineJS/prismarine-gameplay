@@ -1,4 +1,4 @@
-import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
+import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver, Heuristics } from '../strategy';
 import { ObtainItem } from '../dependencies/obtainItem';
 import { Bot } from 'mineflayer';
 import { Entity } from 'prismarine-entity';
@@ -68,7 +68,7 @@ export class StratCollectItemDrop extends StrategyBase
         super(solver, CollectItemDropInstance);
     }
 
-    estimateHeuristic(dependency: Dependency): number
+    estimateHeuristic(dependency: Dependency): Heuristics | null
     {
         switch (dependency.name)
         {
@@ -76,16 +76,28 @@ export class StratCollectItemDrop extends StrategyBase
                 const obtainItem = <ObtainItem>dependency;
 
                 if (!isNeeded(this.bot, obtainItem))
-                    return -1;
+                    return null;
 
-                return this.calculateHeuristicForItem(obtainItem.inputs.itemType);
+                const time = this.calculateHeuristicForItem(obtainItem.inputs.itemType);
+
+                if (time < 0)
+                    return null;
+
+                return { // TODO Add child tasks
+                    time: time,
+                    childTasks: []
+                };
 
             case 'collectItemDrops':
                 const collectItem = <CollectItemDrops>dependency;
-                return this.calculateHeuristicForItemList(collectItem.inputs.items);
+
+                return { // TODO Add child tasks
+                    time: this.calculateHeuristicForItemList(collectItem.inputs.items),
+                    childTasks: []
+                }
 
             default:
-                return -1;
+                return null;
         }
     }
 

@@ -25,6 +25,24 @@ export interface Dependency
 }
 
 /**
+ * The estimated heuristics that is returned from each strategy to check how ideal using this
+ * strategy would be.
+ */
+export interface Heuristics
+{
+    /**
+     * The estimated number of ticks required for this strategy to be executed, not counting
+     * any child tasks.
+     */
+    time: number;
+
+    /**
+     * The list of tasks that are estimated to be used if this strategy is run.
+     */
+    childTasks: Dependency[];
+}
+
+/**
  * The dependency resolver
  */
 export class Solver
@@ -38,6 +56,11 @@ export class Solver
         this.bot = bot;
     }
 
+    /**
+     * Registers a new strategy to be used in this solver.
+     * 
+     * @param strategy - The strategy.
+     */
     register(strategy: StrategyBase): void
     {
         if (this.strategies.indexOf(strategy) > -1)
@@ -68,10 +91,10 @@ export class Solver
             {
                 const h = strategy.estimateHeuristic(dependency, (dep) => this.fastHeuristic(dep, depth));
 
-                if (h < 0)
+                if (!h)
                     continue;
 
-                solutions.push([strategy, h]);
+                solutions.push([strategy, h.time]);
             }
             catch(err)
             {
@@ -151,10 +174,9 @@ export abstract class StrategyBase
      * @param dependency - The dependency to estimate for.
      * @param resolver - The resolver for handling dependencies while running.
      *
-     * @returns The estimated heuristic cost, or a negative number if this task cannot
-     * complete the given dependency task.
+     * @returns The estimated heuristic object, or a null.
      */
-    abstract estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number;
+    abstract estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): Heuristics | null;
 }
 
 export abstract class StrategyExecutionInstance

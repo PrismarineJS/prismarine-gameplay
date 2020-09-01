@@ -1,4 +1,4 @@
-import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
+import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver, Heuristics } from '../strategy';
 import { DependencyResolver, HeuristicResolver } from '../tree';
 import { GiveTo, ObtainItems } from '../dependencies';
 import { TaskQueue, TemporarySubscriber } from 'mineflayer-utils';
@@ -15,31 +15,28 @@ export class StratGiveTo extends StrategyBase
         super(solver, GiveToInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number
+    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): Heuristics | null
     {
-        switch (dependency.name)
-        {
-            case 'giveTo':
-                const giveToTask = <GiveTo>dependency;
+        if (dependency.name !== 'giveTo')
+            return null;
 
-                const obtainCost = resolver(new ObtainItems({
+        const giveToTask = <GiveTo>dependency;
+
+        // TODO Use movement task inside of hardcoding it in here
+        let distanceCost = this.bot.entity.position.distanceTo(giveToTask.inputs.entity.position);
+        distanceCost *= 1.2; // Add 20% to account for pathfinding around stuff
+        distanceCost *= 10; // Assume 10 ticks per block moved
+
+        return {
+            time: distanceCost,
+            childTasks: [
+                new ObtainItems({
                     itemType: giveToTask.inputs.itemType,
                     count: giveToTask.inputs.count,
                     countInventory: true
-                }));
-
-                if (obtainCost < 0)
-                    return -1;
-
-                let distanceCost = this.bot.entity.position.distanceTo(giveToTask.inputs.entity.position);
-                distanceCost *= 1.2; // Add 20% to account for pathfinding around stuff
-                distanceCost *= 10; // Assume 10 ticks per block moved
-
-                return obtainCost + distanceCost;
-
-            default:
-                return -1;
-        }
+                }),
+            ]
+        };
     }
 }
 

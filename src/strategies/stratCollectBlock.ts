@@ -1,4 +1,4 @@
-import { StrategyBase, StrategyExecutionInstance, Dependency, Solver, Callback } from "../strategy";
+import { StrategyBase, StrategyExecutionInstance, Dependency, Solver, Callback, Heuristics } from "../strategy";
 import { CollectBlock, MoveToInteract, BreakBlock, WaitForItemDrop, ObtainItem } from "../dependencies";
 import { CollectItemDrops } from "../dependencies/collectItemDrop";
 import { Vec3 } from "vec3";
@@ -116,23 +116,32 @@ export class StratCollectBlock extends StrategyBase
         super(solver, CollectBlockInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number
+    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): Heuristics | null
     {
+        // TODO Add child tasks
+
+        let time = -1;
+
         switch (dependency.name)
         {
             case 'collectBlock':
-                return estimateDistance(dependency, this.bot);
+                time = estimateDistance(dependency, this.bot);
+                break;
 
             case 'obtainItem':
                 const obtainItem = <ObtainItem>dependency;
 
-                if (!isNeeded(this.bot, obtainItem))
-                    return -1;
+                if (!isNeeded(this.bot, obtainItem)) time = -1;
+                else time = estimateDistance(dependency, this.bot);
+                break;
+        }
 
-                return estimateDistance(dependency, this.bot);
-
-            default:
-                return -1;
+        if (time < 0)
+            return null;
+        
+        return {
+            time: time,
+            childTasks: []
         }
     }
 }

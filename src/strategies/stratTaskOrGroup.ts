@@ -1,4 +1,4 @@
-import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
+import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver, Heuristics } from '../strategy';
 import { DependencyResolver, HeuristicResolver } from '../tree';
 import { TaskOrGroup } from '../dependencies';
 
@@ -11,30 +11,17 @@ export class StratTaskOrGroup extends StrategyBase
         super(solver, TaskOrGroupInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number
+    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): Heuristics | null
     {
-        switch (dependency.name)
-        {
-            case 'taskOrGroup':
-                const taskOrGroupTask = <TaskOrGroup>dependency;
+        if (dependency.name !== 'taskOrGroup')
+            return null;
 
-                let min = -1;
-                for (const task of taskOrGroupTask.inputs.tasks)
-                {
-                    const h = resolver(task);
-
-                    // @ts-ignore
-                    task.estimatedCost = h; // TODO Estimate heuristic at execute time, as it may change
-
-                    if (min < 0 || (h >= 0 && h < min))
-                        min = h;
-                }
-
-                return min;
-
-            default:
-                return -1;
-        }
+        const taskOrGroupTask = <TaskOrGroup>dependency;
+        
+        return {
+            time: 0,
+            childTasks: taskOrGroupTask.inputs.tasks
+        };
     }
 }
 
