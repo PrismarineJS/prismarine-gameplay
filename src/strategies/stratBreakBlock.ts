@@ -4,8 +4,9 @@ import { MoveToInteract, SelectBestTool } from '../dependencies';
 
 // @ts-ignore
 import nbt from 'prismarine-nbt';
-import { HeuristicResolver, DependencyResolver } from '../tree';
+import { DependencyResolver } from '../tree';
 import { TaskQueue } from 'mineflayer-utils';
+import { Block } from 'prismarine-block';
 
 export class StratBreakBlock extends StrategyBase
 {
@@ -16,47 +17,34 @@ export class StratBreakBlock extends StrategyBase
         super(solver, BreakBlockInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): Heuristics | null
+    estimateHeuristic(dependency: Dependency): Heuristics | null
     {
         if (dependency.name !== 'breakBlock')
             return null;
 
-        const time = this.estimateTime(<BreakBlock>dependency, resolver);
-
-        if (time < 0)
-            return null;
-
-        // TODO Add child tasks
-
-        return {
-            time: time,
-            childTasks: []
-        };
-    }
-
-    private estimateTime(breakBlock: BreakBlock, resolver: HeuristicResolver): number
-    {
-        const moveHeuristic = resolver(new MoveToInteract({
-            position: breakBlock.inputs.position
-        }));
-
-        if (moveHeuristic < 0)
-            return -1;
-
-        const breakHeuristic = this.estimateBreakTime(breakBlock);
-
-        if (breakHeuristic < 0)
-            return -1;
-
-        return moveHeuristic + breakHeuristic;
-    }
-
-    private estimateBreakTime(breakBlock: BreakBlock): number
-    {
+        const breakBlock = <BreakBlock>dependency;
         const block = this.bot.blockAt(breakBlock.inputs.position);
 
         if (!block)
-            return -1;
+            return null;
+
+        return {
+            time: this.estimateBreakTime(block),
+            childTasks: [
+                new MoveToInteract({
+                    position: breakBlock.inputs.position
+                }),
+                new SelectBestTool({
+                    block: block,
+                    requiredDrop: breakBlock.inputs.requiredDrop,
+                    craftIfNeeded: breakBlock.inputs.requiredDrop !== undefined
+                })
+            ]
+        };
+    }
+
+    private estimateBreakTime(block: Block): number
+    {
 
         // TODO Shouldn't tool selection and time estimate be saved for a child task?
 

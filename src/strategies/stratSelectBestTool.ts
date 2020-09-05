@@ -3,7 +3,7 @@ import { SelectBestTool, Craft, TaskOrGroup } from '../dependencies';
 
 // @ts-ignore
 import nbt from 'prismarine-nbt';
-import { HeuristicResolver, DependencyResolver } from '../tree';
+import { DependencyResolver } from '../tree';
 import { Block } from 'prismarine-block';
 import { Item } from 'prismarine-item';
 import { Bot, Enchantment } from 'mineflayer';
@@ -165,7 +165,7 @@ export class StratSelectBestTool extends StrategyBase
         super(solver, SelectBestToolInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): Heuristics | null
+    estimateHeuristic(dependency: Dependency): Heuristics | null
     {
         if (dependency.name !== 'selectBestTool')
             return null;

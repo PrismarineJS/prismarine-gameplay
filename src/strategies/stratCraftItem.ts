@@ -1,5 +1,5 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver, Heuristics } from '../strategy';
-import { DependencyResolver, HeuristicResolver } from '../tree';
+import { DependencyResolver } from '../tree';
 import { MoveToInteract, ObtainItems } from '../dependencies';
 import { TaskQueue } from 'mineflayer-utils';
 import { Craft, TaskOrGroup, TaskAndGroup } from '../dependencies';
@@ -72,7 +72,7 @@ export class StratCraftItem extends StrategyBase
         super(solver, CraftItemInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): Heuristics | null
+    estimateHeuristic(dependency: Dependency): Heuristics | null
     {
         if (dependency.name !== 'craft')
             return null;

@@ -1,7 +1,7 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver, Heuristics } from '../strategy';
 import { ObtainItems } from '../dependencies/obtainItems';
 import { ObtainItem } from '../dependencies';
-import { DependencyResolver, HeuristicResolver } from '../tree';
+import { DependencyResolver } from '../tree';
 import { Bot } from 'mineflayer';
 
 function countItemsOfType(bot: Bot, itemType: string): number
@@ -37,7 +37,7 @@ export class StratCollectResources extends StrategyBase
         super(solver, CollectResourcesInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): Heuristics | null
+    estimateHeuristic(dependency: Dependency): Heuristics | null
     {
         if (dependency.name !== 'obtainItems')
             return null;

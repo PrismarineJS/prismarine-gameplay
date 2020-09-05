@@ -6,11 +6,6 @@ import { StrategyExecutionInstance, Dependency, Solver, Callback } from "./strat
 export type DependencyResolver = (dependency: Dependency, cb: Callback) => void;
 
 /**
- * A handler for resolving heuristics at runtime.
- */
-export type HeuristicResolver = (Dependency: Dependency) => number;
-
-/**
  * An execution status for a strategy to preform.
  */
 export enum ExecutionStatus

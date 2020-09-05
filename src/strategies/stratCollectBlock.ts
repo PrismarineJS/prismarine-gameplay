@@ -2,7 +2,7 @@ import { StrategyBase, StrategyExecutionInstance, Dependency, Solver, Callback, 
 import { CollectBlock, MoveToInteract, BreakBlock, WaitForItemDrop, ObtainItem } from "../dependencies";
 import { CollectItemDrops } from "../dependencies/collectItemDrop";
 import { Vec3 } from "vec3";
-import { DependencyResolver, HeuristicResolver } from "../tree";
+import { DependencyResolver } from "../tree";
 import { TaskQueue } from "mineflayer-utils";
 import { Bot } from "mineflayer";
 
@@ -116,7 +116,7 @@ export class StratCollectBlock extends StrategyBase
         super(solver, CollectBlockInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): Heuristics | null
+    estimateHeuristic(dependency: Dependency): Heuristics | null
     {
         // TODO Add child tasks
 

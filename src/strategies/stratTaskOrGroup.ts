@@ -1,5 +1,5 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver, Heuristics } from '../strategy';
-import { DependencyResolver, HeuristicResolver } from '../tree';
+import { DependencyResolver } from '../tree';
 import { TaskOrGroup } from '../dependencies';
 
 export class StratTaskOrGroup extends StrategyBase
@@ -11,7 +11,7 @@ export class StratTaskOrGroup extends StrategyBase
         super(solver, TaskOrGroupInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): Heuristics | null
+    estimateHeuristic(dependency: Dependency): Heuristics | null
     {
         if (dependency.name !== 'taskOrGroup')
             return null;

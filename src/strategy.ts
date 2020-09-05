@@ -1,5 +1,5 @@
 import { Bot } from "mineflayer";
-import { DependencyResolver, HeuristicResolver } from "./tree";
+import { DependencyResolver } from "./tree";
 
 /**
  * The callback function for a strategy.
@@ -89,7 +89,7 @@ export class Solver
 
             try
             {
-                const h = strategy.estimateHeuristic(dependency, (dep) => this.fastHeuristic(dep, depth));
+                const h = strategy.estimateHeuristic(dependency);
 
                 if (!h)
                     continue;
@@ -105,24 +105,6 @@ export class Solver
         solutions.sort((a, b) => a[1] - b[1]);
 
         return new DependencyResolution(dependency, solutions);
-    }
-
-    /**
-     * Quickly estimates the heuristics for a given dependency.
-     * 
-     * @param dependency - The dependency to resolve.
-     */
-    private fastHeuristic(dependency: Dependency, depth: number): number
-    {
-        if (depth > 10)
-            return 0;
-
-        const resolve = this.findSolutionsFor(dependency, undefined, depth + 1);
-
-        if (resolve.dependencyHandlers.length === 0)
-            return -1;
-
-        return resolve.dependencyHandlers[0][1];
     }
 }
 
@@ -172,11 +154,10 @@ export abstract class StrategyBase
      * task.
      * 
      * @param dependency - The dependency to estimate for.
-     * @param resolver - The resolver for handling dependencies while running.
      *
      * @returns The estimated heuristic object, or a null.
      */
-    abstract estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): Heuristics | null;
+    abstract estimateHeuristic(dependency: Dependency): Heuristics | null;
 }
 
 export abstract class StrategyExecutionInstance

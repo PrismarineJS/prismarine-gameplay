@@ -1,5 +1,5 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver, Heuristics } from '../strategy';
-import { DependencyResolver, HeuristicResolver } from '../tree';
+import { DependencyResolver } from '../tree';
 import { GiveTo, ObtainItems } from '../dependencies';
 import { TaskQueue, TemporarySubscriber } from 'mineflayer-utils';
 import { Movements, Result, goals } from 'mineflayer-pathfinder';
@@ -15,7 +15,7 @@ export class StratGiveTo extends StrategyBase
         super(solver, GiveToInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): Heuristics | null
+    estimateHeuristic(dependency: Dependency): Heuristics | null
     {
         if (dependency.name !== 'giveTo')
             return null;
