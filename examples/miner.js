@@ -25,7 +25,7 @@ const bot = mineflayer.createBot({
 bot.loadPlugin(pathfinder)
 bot.loadPlugin(gameplay)
 
-bot.on('spawn', () => bot.gameplay.debugText = true)
+// bot.on('spawn', () => bot.gameplay.debugText = true)
 
 bot.on('chat', (username, message) => run(username, message))
 
@@ -39,8 +39,7 @@ function run (username, message) {
         new MoveTo({
           x: parseInt(command[1]),
           z: parseInt(command[2])
-        })
-      )
+        }), logError)
       break
 
     case /^moveto -?[0-9]+ -?[0-9]+ -?[0-9]+$/.test(message):
@@ -49,8 +48,7 @@ function run (username, message) {
           x: parseInt(command[1]),
           y: parseInt(command[2]),
           z: parseInt(command[3])
-        })
-      )
+        }), logError)
       break
 
     case /^comehere$/.test(message):
@@ -62,8 +60,7 @@ function run (username, message) {
             x: player.position.x,
             y: player.position.y,
             z: player.position.z
-          })
-        )
+        }), logError)
       }
       break
 
@@ -75,8 +72,7 @@ function run (username, message) {
             parseInt(command[2]),
             parseInt(command[3])
           )
-        })
-      )
+        }), logError)
       break
 
     case /^collect [0-9]+ [a-zA-Z_]+$/.test(message):
@@ -84,16 +80,14 @@ function run (username, message) {
         new ObtainItems({
           itemType: command[2],
           count: parseInt(command[1])
-        })
-      )
+        }), logError)
       break
 
     case /^collect [a-zA-Z_]+$/.test(message):
       bot.gameplay.solveFor(
         new ObtainItem({
           itemType: command[1]
-        })
-      )
+        }), logError)
       break
 
     case /^bringme [0-9]+ [a-zA-Z_]+$/.test(message):
@@ -102,12 +96,13 @@ function run (username, message) {
           itemType: command[2],
           count: parseInt(command[1]),
           entity: player
-        })
-      )
-      break
-
-    case /^stop$/.test(message):
-      bot.chat('Stopping')
+        }), logError)
       break
   }
+}
+
+function logError(err)
+{
+    if (err)
+        bot.chat(`Failed to complete task: ${err.message}`)
 }

@@ -73,11 +73,18 @@ class StrategyTreeData implements TreeData
     {
         const resolver: DependencyResolver = (dependency, cb) =>
         {
-            const dep = new DependencyTreeData(this.solver, dependency);
-            const childTree = new Tree(dep);
-            tree.addChild(childTree);
+            try
+            {
+                const dep = new DependencyTreeData(this.solver, dependency);
+                const childTree = new Tree(dep);
+                tree.addChild(childTree);
 
-            childTree.execute(cb);
+                childTree.execute(cb);
+            }
+            catch(err)
+            {
+                cb(err);
+            }
         };
 
         this.strategy.run(this.dependency, resolver, cb);
@@ -129,12 +136,20 @@ class DependencyTreeData implements TreeData
 
             childIndex++;
 
-            tree.addChild(childTree);
-            childTree.execute(err =>
+            try
             {
-                if (err) attemptNext();
-                else cb();
-            });
+                tree.addChild(childTree);
+                childTree.execute(err =>
+                {
+                    if (err) attemptNext();
+                    else cb();
+                });
+            }
+            catch(err)
+            {
+                cb(err);
+                return;
+            }
         };
 
         attemptNext();
@@ -265,16 +280,16 @@ export class Tree
         tree.parent = this;
 
         this.printSpam();
-        this.root.checkForStackOverflow();
+        tree.checkForStackOverflow();
     }
 
     private checkForStackOverflow(depth: number = 0): void
     {
-        if (depth >= 32)
+        if (depth >= 128)
             throw new Error("Tree max depth exceeded!");
 
-        for (const child of this.children)
-            child.checkForStackOverflow(depth + 1);
+        if (this.parent)
+            this.parent.checkForStackOverflow(depth + 1);
     }
 
     private printSpam(): void

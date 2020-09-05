@@ -36,23 +36,14 @@ class TaskOrGroupInstance extends StrategyExecutionInstance
 
         const tasks = [...taskOrGroupTask.inputs.tasks];
 
-        // @ts-ignore
-        tasks.sort((a, b) => a.estimatedCost - b.estimatedCost)
-
         function handleNext()
         {
+            // TODO Estimate cost and get the cheapest
             const task = tasks.pop();
 
             if (!task)
             {
                 cb(new Error("No tasks remaining!"));
-                return;
-            }
-
-            // @ts-ignore
-            if (task.estimatedCost === -1)
-            {
-                handleNext();
                 return;
             }
 

@@ -1,5 +1,6 @@
 import { Bot } from "mineflayer";
 import { DependencyResolver } from "./tree";
+import { findSolutions } from "./bestFirstSearch";
 
 /**
  * The callback function for a strategy.
@@ -80,30 +81,7 @@ export class Solver
      */
     findSolutionsFor(dependency: Dependency, caller?: StrategyBase, depth: number = 0): DependencyResolution
     {
-        const solutions: [StrategyBase, number][] = [];
-
-        for (const strategy of this.strategies)
-        {
-            if (strategy === caller)
-                continue;
-
-            try
-            {
-                const h = strategy.estimateHeuristic(dependency);
-
-                if (!h)
-                    continue;
-
-                solutions.push([strategy, h.time]);
-            }
-            catch(err)
-            {
-                continue;
-            }
-        }
-
-        solutions.sort((a, b) => a[1] - b[1]);
-
+        const solutions = findSolutions(dependency, this.strategies, 8);
         return new DependencyResolution(dependency, solutions);
     }
 }
