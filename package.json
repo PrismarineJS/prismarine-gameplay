@@ -30,7 +30,8 @@
   "homepage": "https://github.com/PrismarineJS/prismarine-gameplay#readme",
   "devDependencies": {
     "jest": "^26.2.2",
-    "require-self": "^0.2.3"
+    "require-self": "^0.2.3",
+    "standard": "^15.0.0"
   },
   "dependencies": {
     "minecraft-data": "^2.63.0",
