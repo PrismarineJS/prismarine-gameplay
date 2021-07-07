@@ -1,4 +1,4 @@
-import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
+import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver, Heuristics } from '../strategy';
 import { Entity } from 'prismarine-entity';
 import { WaitForItemDrop } from '../dependencies/waitForItemDrop';
 import { DependencyResolver } from '../tree';
@@ -12,16 +12,15 @@ export class StratWaitForItemDrop extends StrategyBase
         super(solver, WaitForItemDropInstance);
     }
 
-    estimateHeuristic(dependency: Dependency): number
+    estimateHeuristic(dependency: Dependency): Heuristics | null
     {
-        switch (dependency.name)
-        {
-            case 'waitForItemDrop':
-                return 10; // Item drops usually happen almost instantly.
+        if (dependency.name !== 'waitForItemDrop')
+            return null;
 
-            default:
-                return -1;
-        }
+        return {
+            time: 10, // Item drops usually happen almost instantly.
+            childTasks: []
+        };
     }
 }
 

@@ -1,10 +1,10 @@
-import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
+import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver, Heuristics } from '../strategy';
 import { Movements, Result, Move, goals } from 'mineflayer-pathfinder';
 import { MoveTo } from '../dependencies/moveTo';
 import { Vec3 } from 'vec3';
 import { MoveToInteract } from '../dependencies';
 import { DependencyResolver } from '../tree';
-import { TemporarySubscriber } from '../tempsubscriber';
+import { TemporarySubscriber } from 'mineflayer-utils';
 
 interface PositionHolder
 {
@@ -23,18 +23,24 @@ export class StratMoveToTarget extends StrategyBase
         super(solver, MoveToTargetInstance);
     }
 
-    estimateHeuristic(dependency: Dependency): number
+    estimateHeuristic(dependency: Dependency): Heuristics | null
     {
         switch (dependency.name)
         {
             case 'moveTo':
-                return this.calculateHeuristicForMoveTarget((<MoveTo>dependency).inputs);
+                return {
+                    time: this.calculateHeuristicForMoveTarget((<MoveTo>dependency).inputs),
+                    childTasks: []
+                };
 
             case 'moveToInteract':
-                return this.calculateHeuristicForMoveTarget((<MoveToInteract>dependency).inputs.position);
+                return {
+                    time: this.calculateHeuristicForMoveTarget((<MoveToInteract>dependency).inputs.position),
+                    childTasks: []
+                };
 
             default:
-                return -1;
+                return null;
         }
     }
 
@@ -98,7 +104,6 @@ class MoveToTargetInstance extends StrategyExecutionInstance
             {
                 sub.cleanup();
                 pathfinder.setGoal(null);
-
                 cb(new Error("No path to target!"));
             }
         });

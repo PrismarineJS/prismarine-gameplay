@@ -1,11 +1,12 @@
-import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
+import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver, Heuristics } from '../strategy';
 import { BreakBlock } from '../dependencies/breakBlock';
 import { MoveToInteract, SelectBestTool } from '../dependencies';
 
 // @ts-ignore
 import nbt from 'prismarine-nbt';
-import { HeuristicResolver, DependencyResolver } from '../tree';
-import { TaskQueue } from '../taskqueue';
+import { DependencyResolver } from '../tree';
+import { TaskQueue } from 'mineflayer-utils';
+import { Block } from 'prismarine-block';
 
 export class StratBreakBlock extends StrategyBase
 {
@@ -16,55 +17,48 @@ export class StratBreakBlock extends StrategyBase
         super(solver, BreakBlockInstance);
     }
 
-    estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number
+    estimateHeuristic(dependency: Dependency): Heuristics | null
     {
-        switch (dependency.name)
-        {
-            case 'breakBlock':
-                return this.estimateTime(<BreakBlock>dependency, resolver);
+        if (dependency.name !== 'breakBlock')
+            return null;
 
-            default:
-                return -1;
-        }
-    }
-
-    private estimateTime(breakBlock: BreakBlock, resolver: HeuristicResolver): number
-    {
-        const moveHeuristic = resolver(new MoveToInteract({
-            position: breakBlock.inputs.position
-        }));
-
-        if (moveHeuristic < 0)
-            return -1;
-
-        const breakHeuristic = this.estimateBreakTime(breakBlock);
-
-        if (breakHeuristic < 0)
-            return -1;
-
-        return moveHeuristic + breakHeuristic;
-    }
-
-    private estimateBreakTime(breakBlock: BreakBlock): number
-    {
+        const breakBlock = <BreakBlock>dependency;
         const block = this.bot.blockAt(breakBlock.inputs.position);
 
         if (!block)
-            return -1;
+            return null;
+
+        return {
+            time: this.estimateBreakTime(block),
+            childTasks: [
+                new MoveToInteract({
+                    position: breakBlock.inputs.position
+                }),
+                new SelectBestTool({
+                    block: block,
+                    requiredDrop: breakBlock.inputs.requiredDrop,
+                    craftIfNeeded: breakBlock.inputs.requiredDrop !== undefined
+                })
+            ]
+        };
+    }
+
+    private estimateBreakTime(block: Block): number
+    {
 
         // TODO Shouldn't tool selection and time estimate be saved for a child task?
 
-        // @ts-ignore
+        // @ts-expect-error
         const effects = this.bot.entity.effects;
 
-        // @ts-ignore
+        // @ts-expect-error
         let fastest = block.digTime(null, false, false, false, [], effects);
 
         for (const tool of this.bot.inventory.items())
         {
             const enchants = (tool && tool.nbt) ? nbt.simplify(tool.nbt).Enchantments : []
 
-            // @ts-ignore
+            // @ts-expect-error
             const digTime = block.digTime(tool ? tool.type : null, false, false, false, enchants, effects);
 
             if (digTime < fastest)
@@ -82,7 +76,8 @@ class BreakBlockInstance extends StrategyExecutionInstance
         if (dependency.name !== 'breakBlock')
             throw new Error("Unsupported dependency!");
 
-        const position = (<BreakBlock>dependency).inputs.position;
+        const breakBlock = <BreakBlock>dependency;
+        const position = breakBlock.inputs.position;
         const block = this.bot.blockAt(position);
 
         if (!block)
@@ -92,14 +87,26 @@ class BreakBlockInstance extends StrategyExecutionInstance
             position: position
         });
 
-        const selectBestTool = new SelectBestTool({
-            block: block
-        });
+        const requiredDrop = breakBlock.inputs.requiredDrop;
+
+        let toolOptions;
+        if (requiredDrop)
+            toolOptions = {
+                block: block,
+                requiredDrop: requiredDrop,
+                craftIfNeeded: true
+            }
+        else
+            toolOptions = {
+                block: block
+            }
+
+        const selectBestTool = new SelectBestTool(toolOptions);
 
         const taskQueue = new TaskQueue();
-        taskQueue.addTask(cb => resolver(moveToInteract, cb));
-        taskQueue.addTask(cb => resolver(selectBestTool, cb));
-        taskQueue.addTask(cb => this.bot.dig(block, cb));
+        taskQueue.add(cb => resolver(moveToInteract, cb));
+        taskQueue.add(cb => resolver(selectBestTool, cb));
+        taskQueue.add(cb => this.bot.dig(block, cb));
         taskQueue.runAll(cb);
     }
 }

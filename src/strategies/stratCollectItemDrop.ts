@@ -1,4 +1,4 @@
-import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
+import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver, Heuristics } from '../strategy';
 import { ObtainItem } from '../dependencies/obtainItem';
 import { Bot } from 'mineflayer';
 import { Entity } from 'prismarine-entity';
@@ -38,6 +38,27 @@ function getNearbyItem(bot: Bot, itemName: string): Entity | undefined
     return closestEntity;
 }
 
+function countItemsOfType(bot: Bot, itemType: string): number
+{
+    let count = 0;
+
+    for (const item of bot.inventory.items())
+    {
+        if (item.name === itemType)
+            count += item.count;
+    }
+
+    return count;
+}
+
+function isNeeded(bot: Bot, obtainItem: ObtainItem): boolean
+{
+    if (obtainItem.inputs.countInventory)
+        return countItemsOfType(bot, obtainItem.inputs.itemType) === 0;
+
+    return true;
+}
+
 export class StratCollectItemDrop extends StrategyBase
 {
     readonly name: string = 'collectItemDrop';
@@ -47,20 +68,36 @@ export class StratCollectItemDrop extends StrategyBase
         super(solver, CollectItemDropInstance);
     }
 
-    estimateHeuristic(dependency: Dependency): number
+    estimateHeuristic(dependency: Dependency): Heuristics | null
     {
         switch (dependency.name)
         {
             case 'obtainItem':
                 const obtainItem = <ObtainItem>dependency;
-                return this.calculateHeuristicForItem(obtainItem.inputs.itemType);
+
+                if (!isNeeded(this.bot, obtainItem))
+                    return null;
+
+                const time = this.calculateHeuristicForItem(obtainItem.inputs.itemType);
+
+                if (time < 0)
+                    return null;
+
+                return { // TODO Add child tasks
+                    time: time,
+                    childTasks: []
+                };
 
             case 'collectItemDrops':
                 const collectItem = <CollectItemDrops>dependency;
-                return this.calculateHeuristicForItemList(collectItem.inputs.items);
+
+                return { // TODO Add child tasks
+                    time: this.calculateHeuristicForItemList(collectItem.inputs.items),
+                    childTasks: []
+                }
 
             default:
-                return -1;
+                return null;
         }
     }
 

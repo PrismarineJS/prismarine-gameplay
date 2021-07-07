@@ -1,5 +1,6 @@
 import { Bot } from "mineflayer";
-import { DependencyResolver, HeuristicResolver } from "./tree";
+import { DependencyResolver } from "./tree";
+import { findSolutions } from "./bestFirstSearch";
 
 /**
  * The callback function for a strategy.
@@ -25,6 +26,24 @@ export interface Dependency
 }
 
 /**
+ * The estimated heuristics that is returned from each strategy to check how ideal using this
+ * strategy would be.
+ */
+export interface Heuristics
+{
+    /**
+     * The estimated number of ticks required for this strategy to be executed, not counting
+     * any child tasks.
+     */
+    time: number;
+
+    /**
+     * The list of tasks that are estimated to be used if this strategy is run.
+     */
+    childTasks: Dependency[];
+}
+
+/**
  * The dependency resolver
  */
 export class Solver
@@ -38,6 +57,11 @@ export class Solver
         this.bot = bot;
     }
 
+    /**
+     * Registers a new strategy to be used in this solver.
+     * 
+     * @param strategy - The strategy.
+     */
     register(strategy: StrategyBase): void
     {
         if (this.strategies.indexOf(strategy) > -1)
@@ -55,40 +79,10 @@ export class Solver
      * 
      * @returns A list of tuples containing each available strategy and its heuristic value.
      */
-    findSolutionsFor(dependency: Dependency, caller?: StrategyBase): DependencyResolution
+    findSolutionsFor(dependency: Dependency, caller?: StrategyBase, depth: number = 0): DependencyResolution
     {
-        const solutions: [StrategyBase, number][] = [];
-
-        for (const strategy of this.strategies)
-        {
-            if (strategy === caller)
-                continue;
-
-            const h = strategy.estimateHeuristic(dependency, (dep) => this.fastHeuristic(dep));
-            if (h < 0)
-                continue;
-
-            solutions.push([strategy, h]);
-        }
-
-        solutions.sort((a, b) => a[1] - b[1]);
-
+        const solutions = findSolutions(dependency, this.strategies, 8);
         return new DependencyResolution(dependency, solutions);
-    }
-
-    /**
-     * Quickly estimates the heuristics for a given dependency.
-     * 
-     * @param dependency - The dependency to resolve.
-     */
-    private fastHeuristic(dependency: Dependency): number
-    {
-        const resolve = this.findSolutionsFor(dependency);
-
-        if (resolve.dependencyHandlers.length === 0)
-            return -1;
-
-        return resolve.dependencyHandlers[0][1];
     }
 }
 
@@ -138,12 +132,10 @@ export abstract class StrategyBase
      * task.
      * 
      * @param dependency - The dependency to estimate for.
-     * @param resolver - The resolver for handling dependencies while running.
      *
-     * @returns The estimated heuristic cost, or a negative number if this task cannot
-     * complete the given dependency task.
+     * @returns The estimated heuristic object, or a null.
      */
-    abstract estimateHeuristic(dependency: Dependency, resolver: HeuristicResolver): number;
+    abstract estimateHeuristic(dependency: Dependency): Heuristics | null;
 }
 
 export abstract class StrategyExecutionInstance
