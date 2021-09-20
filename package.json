@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/PrismarineJS/prismarine-gameplay#readme",
   "devDependencies": {
-    "jest": "^26.2.2",
+    "jest": "^27.2.1",
     "require-self": "^0.2.3",
     "standard": "^16.0.1"
   },
