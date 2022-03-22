@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "minecraft-data": "^2.63.0",
-    "mineflayer": "^2.25.0",
+    "mineflayer": "^4.2.0",
     "mineflayer-pathfinder": "^1.0.10",
     "prismarine-block": "^1.7.1",
     "prismarine-chat": "^1.0.2",
