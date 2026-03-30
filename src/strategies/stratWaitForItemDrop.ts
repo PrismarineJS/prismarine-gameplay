@@ -1,5 +1,4 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
-import { Entity } from 'prismarine-entity';
 import { WaitForItemDrop } from '../dependencies/waitForItemDrop';
 import { DependencyResolver } from '../tree';
 
@@ -33,7 +32,7 @@ class WaitForItemDropInstance extends StrategyExecutionInstance
         const bot = this.bot;
         let ticksRemaining = itemDrop.inputs.maxTicks;
 
-        function entitySpawn(entity: Entity): void
+        function entitySpawn(entity: any): void
         {
             if (entity.objectType !== 'Item')
                 return;

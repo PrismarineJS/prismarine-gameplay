@@ -99,7 +99,7 @@ class BreakBlockInstance extends StrategyExecutionInstance
         const taskQueue = new TaskQueue();
         taskQueue.addTask(cb => resolver(moveToInteract, cb));
         taskQueue.addTask(cb => resolver(selectBestTool, cb));
-        taskQueue.addTask(cb => this.bot.dig(block, cb));
+        taskQueue.addTask(cb => this.bot.dig(block).then(() => cb()).catch(cb));
         taskQueue.runAll(cb);
     }
 }

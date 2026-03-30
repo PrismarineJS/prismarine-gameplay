@@ -33,7 +33,7 @@ export class TaskQueue
             }
             catch (err)
             {
-                cb(err);
+                cb(err instanceof Error ? err : new Error(String(err)));
             }
         };
 

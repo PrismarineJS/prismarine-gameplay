@@ -2,7 +2,7 @@ import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver }
 import { ObtainItem } from '../dependencies/obtainItem';
 import { Bot } from 'mineflayer';
 import { Entity } from 'prismarine-entity';
-import { Movements, Result } from 'mineflayer-pathfinder';
+import { Movements } from 'mineflayer-pathfinder';
 import { CollectItemDrops } from '../dependencies';
 import { Vec3 } from 'vec3';
 import { DependencyResolver } from '../tree';
@@ -18,7 +18,7 @@ function getNearbyItem(bot: Bot, itemName: string): Entity | undefined
 
     for (let entityName of Object.keys(bot.entities))
     {
-        let entity = bot.entities[entityName];
+        let entity = bot.entities[entityName] as unknown as Entity;
 
         if (entity.objectType !== 'Item')
             continue;
@@ -168,7 +168,7 @@ class CollectItemDropInstance extends StrategyExecutionInstance
 
         const bot = this.bot;
 
-        function entityGone(e: Entity)
+        function entityGone(e: any)
         {
             if (e !== entity)
                 return;
@@ -176,13 +176,13 @@ class CollectItemDropInstance extends StrategyExecutionInstance
             cleanup("Entity disappeared!");
         }
 
-        function pathUpdate(results: Result)
+        function pathUpdate(results: any)
         {
             if (results.status === 'noPath')
                 cleanup("No path to entity!");
         }
 
-        function playerCollect(collector: Entity, item: Entity): void
+        function playerCollect(collector: any, item: any): void
         {
             if (collector === bot.entity && item === entity)
                 cleanup();

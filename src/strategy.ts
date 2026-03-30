@@ -174,7 +174,7 @@ export abstract class StrategyExecutionInstance
         }
         catch (err)
         {
-            cb(err);
+            cb(err instanceof Error ? err : new Error(String(err)));
         }
     }
 }

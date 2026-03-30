@@ -1,5 +1,5 @@
 import { StrategyBase, StrategyExecutionInstance, Dependency, Callback, Solver } from '../strategy';
-import { Movements, Result, Move, goals } from 'mineflayer-pathfinder';
+import { Movements, Move, goals } from 'mineflayer-pathfinder';
 import { MoveTo } from '../dependencies/moveTo';
 import { Vec3 } from 'vec3';
 import { MoveToInteract } from '../dependencies';
@@ -65,7 +65,7 @@ class MoveToTargetInstance extends StrategyExecutionInstance
             y: Math.floor(this.bot.entity.position.y),
             z: Math.floor(this.bot.entity.position.z),
         };
-        if (goal.isEnd(node))
+        if (goal.isEnd(node as Move))
         {
             cb();
             return
@@ -92,7 +92,7 @@ class MoveToTargetInstance extends StrategyExecutionInstance
             cb();
         });
 
-        sub.subscribeTo('path_update', (results: Result) =>
+        sub.subscribeTo('path_update', (results: any) =>
         {
             if (results.status === 'noPath')
             {
@@ -163,6 +163,11 @@ class MoveTargetGoal extends goals.Goal
         const delta = this.delta(node);
         const range = this.moveTarget.range !== undefined ? this.moveTarget.range : 0.5;
         return Math.sqrt(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z) <= range;
+    }
+
+    hasChanged(): boolean
+    {
+        return false;
     }
 
     private delta(node: Move): Vec3
